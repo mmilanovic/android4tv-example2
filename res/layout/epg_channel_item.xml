@@ -1,0 +1,16 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_height="wrap_content"
+    android:layout_width="match_parent"
+    android:orientation="vertical">
+    <TextView
+        android:background="@color/color_channel_list_item_channel_number_background"
+        android:gravity="left"
+        android:id="@+id/textview_channel_number"
+        android:layout_height="@dimen/epg_item_height"
+        android:layout_width="match_parent"
+        android:singleLine="true"
+        android:textColor="@android:color/white"
+        android:textSize="@dimen/epg_time_line_text_size"
+        android:textStyle="bold"/>
+</LinearLayout>
