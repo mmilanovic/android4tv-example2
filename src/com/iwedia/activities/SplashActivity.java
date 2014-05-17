@@ -15,6 +15,7 @@
  */
 package com.iwedia.activities;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.os.Bundle;
 
@@ -24,13 +25,13 @@ import com.iwedia.epg.R;
  * SplashActivity - Splash screen is shown while TV service is being
  * initialized.
  */
-public class SplashActivity extends DVBActivity {
+public class SplashActivity extends Activity {
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.splash_activity);
         /** Start TV activity. */
-        Intent intentActionStartTV = new Intent(this, EPGActivity.class);
+        Intent intentActionStartTV = new Intent(this, TVActivity.class);
         intentActionStartTV.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intentActionStartTV);
         finish();

@@ -32,7 +32,7 @@ import java.text.ParseException;
 /**
  * EPGActivity - Show current EPG events of all channels for 24h.
  */
-public class EPGActivity extends DVBActivity {
+public class EPGActivity extends DTVActivity {
     private final String TAG = "ActivityEPG";
     public static final String FRAGMRENT_ARGUMENT_KEY_TIME = "time";
     public static final int HOURS = 24;
@@ -44,97 +44,29 @@ public class EPGActivity extends DVBActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.epg_activity);
+        mDVBManager.setLoadFinishedListener(mOnLoadFinishedListener);
         mAdapterActivityEPGFragmentTab = new FragmentTabAdapter(this);
         for (int i = 0; i < HOURS; i++) {
             Bundle lArguments = new Bundle();
             lArguments.putInt(FRAGMRENT_ARGUMENT_KEY_TIME, i);
             mAdapterActivityEPGFragmentTab.addTimeLine(lArguments);
         }
-        mDVBManager.InitializeDTVService();
-        mDVBManager.setEventCallback(mEventsCallback);
         mAdapterActivityEPGListViewChannels = new ListViewChannelsAdapter(this,
                 mDVBManager.getChannelNames());
-        try {
-            mDVBManager.startDTV(0);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (InternalException e) {
-            e.printStackTrace();
-        }
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-    }
-
-    @Override
-    protected void onDestroy() {
-        try {
-            mDVBManager.removeEventCAllback(mEventsCallback);
-            mDVBManager.stopDTV();
-        } catch (InternalException e) {
-            e.printStackTrace();
-        }
-        super.onDestroy();
     }
 
     public ListView getListViewChannels() {
         return mAdapterActivityEPGListViewChannels.getListViewChannels();
     }
 
-    private IEpgCallback mEventsCallback = new IEpgCallback() {
+    private OnLoadFinishedListener mOnLoadFinishedListener = new OnLoadFinishedListener() {
         @Override
-        public void scEventChanged(int arg0, int arg1) {
-            Log.d(TAG, "EPG CALLBACK scEventChanged");
-            loadEvents();
-        }
-
-        @Override
-        public void scAcquisitionFinished(int arg0, int arg1) {
-            Log.d(TAG, "EPG CALLBACK scAcquisitionFinished");
-            loadEvents();
-        }
-
-        @Override
-        public void pfEventChanged(int arg0, int arg1) {
-            Log.d(TAG, "EPG CALLBACK pfEventChanged");
-            loadEvents();
-        }
-
-        @Override
-        public void pfAcquisitionFinished(int arg0, int arg1) {
-            Log.d(TAG, "EPG CALLBACK pfAcquisitionFinished");
-            loadEvents();
+        public void onLoadFinished() {
+            mAdapterActivityEPGFragmentTab.notifyAdapters();
         }
     };
 
-    /**
-     * Load EPG events.
-     */
-    private void loadEvents() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mDVBManager.loadEvents(new OnLoadFinishedListener() {
-                        @Override
-                        public void onLoadFinished() {
-                            notifyAdapters();
-                        }
-                    });
-                } catch (ParseException e) {
-                    Log.e(TAG, "Error in date parsing.", e);
-                }
-            }
-        }).start();
-    }
-
     public DVBManager getDVBManager() {
         return mDVBManager;
-    }
-
-    public void notifyAdapters() {
-        mAdapterActivityEPGFragmentTab.notifyAdapters();
     }
 }

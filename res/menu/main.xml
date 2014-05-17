@@ -14,10 +14,15 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:tools="http://schemas.android.com/tools"
-    android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    android:orientation="vertical"
-    android:padding="@dimen/epg_over_scale_padding">
-</LinearLayout>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools">
+    <item
+        android:id="@+id/menu_scan_usb"
+        android:orderInCategory="100"
+        android:title="@string/load_ip_channels"/>
+    <item
+        android:id="@+id/menu_start_epg"
+        android:orderInCategory="100"
+        android:title="@string/epg"/>
+</menu>

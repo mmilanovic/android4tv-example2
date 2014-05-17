@@ -39,7 +39,7 @@ import com.iwedia.epg.R;
 import java.text.ParseException;
 
 /**
- * This fragment inflates listview who will show events for one hour.
+ * This fragment inflates Listview who will show events for one hour.
  */
 public class EPGFragment extends Fragment implements OnItemSelectedListener,
         OnItemClickListener, OnItemLongClickListener {
@@ -158,14 +158,7 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
             @Override
             public void run() {
                 try {
-                    ((EPGActivity) getActivity()).getDVBManager().loadEvents(
-                            new OnLoadFinishedListener() {
-                                @Override
-                                public void onLoadFinished() {
-                                    ((EPGActivity) getActivity())
-                                            .notifyAdapters();
-                                }
-                            });
+                    ((EPGActivity) getActivity()).getDVBManager().loadEvents();
                 } catch (ParseException e) {
                     Log.e(TAG, "Error in date parsing.", e);
                 }
