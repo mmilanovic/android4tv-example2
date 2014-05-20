@@ -27,7 +27,6 @@ import com.iwedia.dtv.dtvmanager.IDTVManager;
 import com.iwedia.dtv.epg.EpgEvent;
 import com.iwedia.dtv.epg.EpgServiceFilter;
 import com.iwedia.dtv.epg.EpgTimeFilter;
-import com.iwedia.dtv.epg.IEpgCallback;
 import com.iwedia.dtv.route.broadcast.IBroadcastRouteControl;
 import com.iwedia.dtv.route.broadcast.RouteDemuxDescriptor;
 import com.iwedia.dtv.route.broadcast.RouteFrontendDescriptor;
@@ -53,6 +52,11 @@ public class DVBManager {
     public static final String TAG = "DVBManager";
     /** Date Format */
     public static final String DATE_FORMAT = "HH:mm:ss' 'dd/MM/yyyy";
+    /** 7 DAYS EPG */
+    private static final int MAX_EPG_DAYS = 6;
+    public static final int LOAD_EPG_PREVIOUS_DAY = -1;
+    public static final int LOAD_EPG_CURRENT_DAY = 0;
+    public static final int LOAD_EPG_NEXT_DAY = 1;
     private Context mContext = null;
     private IDTVManager mDTVManager = null;
     private int mCurrentLiveRoute = -1;
@@ -79,6 +83,8 @@ public class DVBManager {
     private OnLoadFinishedListener mLoadFinishedListener = null;
     /** CallBack for UI. */
     private DVBStatus mDVBStatus = null;
+    /** EPG Current Day. */
+    private int mEPGDay = 0;
 
     /**
      * CallBack for currently DVB status.
@@ -92,7 +98,7 @@ public class DVBManager {
      * Listener for loading EPG events
      */
     public interface OnLoadFinishedListener {
-        public void onLoadFinished();
+        public void onLoadFinished(String date);
     }
 
     public static DVBManager getInstance() throws InternalException {
@@ -425,7 +431,7 @@ public class DVBManager {
         int channelListSize = getChannelListSize()
                 - DTVActivity.sIpChannels.size();
         IServiceControl serviceControl = mDTVManager.getServiceControl();
-        /** If there is IP first element in service list is DUMMY */
+        /** If there is IP first element in service list is DUMMY. */
         channelListSize = ipAndSomeOtherTunerType ? channelListSize + 1
                 : channelListSize;
         for (int i = ipAndSomeOtherTunerType ? 1 : 0; i < channelListSize; i++) {
@@ -446,7 +452,7 @@ public class DVBManager {
      * Get Current Channel Number.
      */
     public int getCurrentChannelNumber() {
-        /** For IP */
+        /** For IP. */
         if (mCurrentLiveRoute == mLiveRouteIp) {
             return mCurrentChannelNumberIp;
         }
@@ -487,17 +493,18 @@ public class DVBManager {
     }
 
     /**
-     * Load Events From MW
+     * Load Events From MW.
      * 
+     * @param day
+     *        -Load EPG for previous or current or next day.
      * @param channelListSize
      *        Number of services in channel list
      * @throws ParseException
      * @throws RemoteException
      */
-    public void loadEvents() throws ParseException {
+    public void loadEvents(int day) throws ParseException {
         if (!loadInProgress) {
             loadInProgress = true;
-            // SimpleDateFormat lDateFormat = new SimpleDateFormat(DATE_FORMAT);
             Date lBeginTime = null;
             Date lEndTime = null;
             Date lParsedBeginTime = null;
@@ -506,11 +513,33 @@ public class DVBManager {
             int lEpgEventsSize = 0;
             int lEventDay = -1;
             TimeDate lCurrentTime = mDTVManager.getSetupControl().getTimeDate();
+            switch (day) {
+                case LOAD_EPG_PREVIOUS_DAY: {
+                    if (mEPGDay > 0) {
+                        mEPGDay--;
+                    } else {
+                        mEPGDay = 0;
+                    }
+                    break;
+                }
+                case LOAD_EPG_CURRENT_DAY: {
+                    mEPGDay = 0;
+                    break;
+                }
+                case LOAD_EPG_NEXT_DAY: {
+                    if (mEPGDay < MAX_EPG_DAYS) {
+                        mEPGDay++;
+                    } else {
+                        mEPGDay = MAX_EPG_DAYS;
+                    }
+                    break;
+                }
+            }
             TimeDate lEpgStartTime = new TimeDate(0, 0, 0,
-                    lCurrentTime.getDay(), lCurrentTime.getMonth(),
+                    lCurrentTime.getDay() + mEPGDay, lCurrentTime.getMonth(),
                     lCurrentTime.getYear());
             TimeDate lEpgEndTime = new TimeDate(0, 59, 23,
-                    lCurrentTime.getDay(), lCurrentTime.getMonth(),
+                    lCurrentTime.getDay() + mEPGDay, lCurrentTime.getMonth(),
                     lCurrentTime.getYear());
             mTimeEventHolders = new ArrayList<TimeEvent>();
             for (int i = 0; i < EPGActivity.HOURS; i++) {
@@ -519,9 +548,11 @@ public class DVBManager {
             /** Create Time Filter */
             EpgTimeFilter lEpgTimeFilter = new EpgTimeFilter();
             lEpgTimeFilter.setTime(lEpgStartTime, lEpgEndTime);
-            /** Make filter list by time */
+            /** Make filter list by time. */
             mDTVManager.getEpgControl().setFilter(mEPGFilterID, lEpgTimeFilter);
-            for (int channelIndex = 0; channelIndex < getChannelListSize(); channelIndex++) {
+            /** Remove IP Channels, there are not currently EPG for that type. */
+            for (int channelIndex = 0; channelIndex < getChannelListSize()
+                    - DTVActivity.sIpChannels.size(); channelIndex++) {
                 /** Create Service Filter. */
                 EpgServiceFilter lEpgServiceFilter = new EpgServiceFilter();
                 lEpgServiceFilter.setServiceIndex(channelIndex);
@@ -544,9 +575,6 @@ public class DVBManager {
                             mEPGFilterID, channelIndex, eventIndex);
                     lBeginTime = lEvent.getStartTime().getCalendar().getTime();
                     lEndTime = lEvent.getEndTime().getCalendar().getTime();
-                    // lDateFormat.parse(lEvent.getStartTime().toString());
-                    // lEndTime =
-                    // lDateFormat.parse(lEvent.getEndTime().toString());
                     if (lEventDay == -1) {
                         lEventDay = lBeginTime.getDay();
                     }
@@ -561,25 +589,53 @@ public class DVBManager {
                                     lBeginTime.getMonth(), lBeginTime.getDay(),
                                     lBeginTime.getHours(), 59, 0);
                             mTimeEventHolders.get(lBeginTime.getHours())
-                                    .addEvent(channelIndex, lEvent.getName(),
-                                            lBeginTime, lParsedEndTime);
+                                    .addEvent(
+                                            channelIndex,
+                                            lEvent.getName(),
+                                            lBeginTime,
+                                            lParsedEndTime,
+                                            lEvent.getDescription(),
+                                            String.valueOf(lEvent
+                                                    .getParentalRate()),
+                                            String.valueOf(lEvent.getGenre()));
                             lParsedBeginTime = new Date(lEndTime.getYear(),
                                     lEndTime.getMonth(), lEndTime.getDay(),
                                     lEndTime.getHours(), 0, 0);
                             mTimeEventHolders.get(lEndTime.getHours())
-                                    .addEvent(channelIndex, lEvent.getName(),
-                                            lParsedBeginTime, lEndTime);
+                                    .addEvent(
+                                            channelIndex,
+                                            lEvent.getName(),
+                                            lParsedBeginTime,
+                                            lEndTime,
+                                            lEvent.getDescription(),
+                                            String.valueOf(lEvent
+                                                    .getParentalRate()),
+                                            String.valueOf(lEvent.getGenre()));
                         } else {
                             mTimeEventHolders.get(lBeginTime.getHours())
-                                    .addEvent(channelIndex, lEvent.getName(),
-                                            lBeginTime, lEndTime);
+                                    .addEvent(
+                                            channelIndex,
+                                            lEvent.getName(),
+                                            lBeginTime,
+                                            lEndTime,
+                                            lEvent.getDescription(),
+                                            String.valueOf(lEvent
+                                                    .getParentalRate()),
+                                            String.valueOf(lEvent.getGenre()));
                         }
+                        Log.i(TAG, "ChannelIndex: " + channelIndex + "Event: "
+                                + lEvent.getName() + " Begin: "
+                                + lEvent.getStartTime().toString() + " End: "
+                                + lEvent.getEndTime().toString() + "\n");
                     }
                 }
                 mDTVManager.getEpgControl().stopAcquisition(mEPGFilterID);
             }
             loadInProgress = false;
-            mLoadFinishedListener.onLoadFinished();
+            mLoadFinishedListener
+                    .onLoadFinished((lCurrentTime.getDay() + mEPGDay) + "/"
+                            + lCurrentTime.getMonth() + "/"
+                            + lCurrentTime.getYear());
         }
     }
 
@@ -605,5 +661,12 @@ public class DVBManager {
     public void setLoadFinishedListener(
             OnLoadFinishedListener loadFinishedListener) {
         mLoadFinishedListener = loadFinishedListener;
+    }
+
+    /** Initialize EPG Date */
+    public void initializeDate() {
+        TimeDate lCurrentTime = mDTVManager.getSetupControl().getTimeDate();
+        mLoadFinishedListener.onLoadFinished(lCurrentTime.getDay() + "/"
+                + lCurrentTime.getMonth() + "/" + lCurrentTime.getYear());
     }
 }

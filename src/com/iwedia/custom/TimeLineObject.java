@@ -27,6 +27,7 @@ import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.LinearLayout;
+import android.widget.ScrollView;
 import android.widget.TextView;
 
 import com.iwedia.dtv.TimeEventHolder;
@@ -123,17 +124,21 @@ public class TimeLineObject extends View {
      */
     public void showDialogWithEvents() {
         if (null != mTimeEventHolder && mTimeEventHolder.size() > 0) {
-            LinearLayout lLinearLayout = (LinearLayout) ((LayoutInflater) mContext
+            ScrollView lScrollView = (ScrollView) ((LayoutInflater) mContext
                     .getSystemService(Service.LAYOUT_INFLATER_SERVICE))
                     .inflate(R.layout.epg_events_dialog, null);
+            LinearLayout lLinearLayout = (LinearLayout) lScrollView
+                    .findViewById(R.id.linearlayout_events);
             for (TimeEventHolder holder : mTimeEventHolder) {
                 TextView lTextView = new TextView(mContext);
                 lTextView.setText(holder.toString());
                 lLinearLayout.addView(lTextView);
+                /** Show only one Event. */
+                break;
             }
             Dialog lDialog = new Dialog(mContext);
             lDialog.setTitle(mChannelName);
-            lDialog.setContentView(lLinearLayout);
+            lDialog.setContentView(lScrollView);
             lDialog.show();
         }
     }

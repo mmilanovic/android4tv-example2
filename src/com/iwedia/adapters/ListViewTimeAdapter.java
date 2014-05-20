@@ -17,6 +17,7 @@ package com.iwedia.adapters;
 
 import android.app.Activity;
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -51,14 +52,18 @@ public class ListViewTimeAdapter extends BaseAdapter {
     }
 
     private void initializeEvents(ArrayList<TimeEvent> timeEvents, int time) {
-        if (null != timeEvents) {
-            TimeEvent lTimeEvent = timeEvents.get(time);
-            if (null != lTimeEvent) {
-                mTimeEventHolders = lTimeEvent.getEvents();
-                if (mTimeEventHolders == null) {
-                    mTimeEventHolders = new ArrayList<ArrayList<TimeEventHolder>>();
+        try {
+            if (null != timeEvents) {
+                TimeEvent lTimeEvent = timeEvents.get(time);
+                if (null != lTimeEvent) {
+                    mTimeEventHolders = lTimeEvent.getEvents();
+                    if (mTimeEventHolders == null) {
+                        mTimeEventHolders = new ArrayList<ArrayList<TimeEventHolder>>();
+                    }
                 }
             }
+        } catch (IndexOutOfBoundsException e) {
+            Log.w(TAG, "There are no Time Events.", e);
         }
     }
 

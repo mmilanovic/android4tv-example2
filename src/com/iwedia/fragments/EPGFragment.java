@@ -32,8 +32,7 @@ import com.iwedia.activities.EPGActivity;
 import com.iwedia.adapters.ListViewTimeAdapter;
 import com.iwedia.custom.TimeLine;
 import com.iwedia.custom.TimeLineObject;
-import com.iwedia.dtv.DVBManager.OnLoadFinishedListener;
-import com.iwedia.dtv.types.InternalException;
+import com.iwedia.dtv.DVBManager;
 import com.iwedia.epg.R;
 
 import java.text.ParseException;
@@ -47,7 +46,15 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
     private View mView = null;
     private ListView mListView = null;
     private NotifyFragments mNotifyFragments = null;
-    private int mPosition = 0;
+
+    /**
+     * Callback for all fragments when a structure of ListView has changed.
+     */
+    public interface NotifyFragments {
+        public void listViewChanged();
+
+        public boolean showAlertDialog();
+    }
 
     @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -65,7 +72,8 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
             mListView.setOnItemSelectedListener(this);
             mListView.setOnItemClickListener(this);
             mListView.setOnItemLongClickListener(this);
-            mListView.setSelection(mPosition);
+            mListView.setSelection(((EPGActivity) getActivity())
+                    .getDVBManager().getCurrentChannelNumber());
             ((TimeLine) mView.findViewById(R.id.timeline_epg_time))
                     .setTime(getArguments().getInt(
                             EPGActivity.FRAGMRENT_ARGUMENT_KEY_TIME));
@@ -82,7 +90,6 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
      */
     public void setListViewPosition(int position) {
         if (mListView != null) {
-            mPosition = position;
             mListView.setSelection(position);
             ((EPGActivity) getActivity()).getListViewChannels().setSelection(
                     position);
@@ -106,7 +113,7 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
      */
     public void reInitializeAdapter() throws RemoteException {
         /** If Fragment is not shown (initialized) do nothing */
-        if (mView != null) {
+        if (mView != null && getActivity() != null) {
             mListView.setAdapter(new ListViewTimeAdapter(getActivity(),
                     ((EPGActivity) getActivity()).getDVBManager()
                             .getChannelNames(), ((EPGActivity) getActivity())
@@ -119,22 +126,12 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
     @Override
     public void onItemSelected(AdapterView<?> parent, View view, int position,
             long id) {
-        if (mNotifyFragments != null) {
-            mNotifyFragments.listViewChanged();
-        }
+        mNotifyFragments.listViewChanged();
     }
 
     @Override
     public void onItemClick(AdapterView<?> parent, View view, int position,
             long id) {
-        try {
-            ((EPGActivity) getActivity()).getDVBManager()
-                    .changeChannelByNumber(position);
-        } catch (IllegalArgumentException e) {
-            e.printStackTrace();
-        } catch (InternalException e) {
-            e.printStackTrace();
-        }
         ((TimeLineObject) view).showDialogWithEvents();
     }
 
@@ -154,16 +151,19 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view,
             int position, long id) {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    ((EPGActivity) getActivity()).getDVBManager().loadEvents();
-                } catch (ParseException e) {
-                    Log.e(TAG, "Error in date parsing.", e);
+        if (!mNotifyFragments.showAlertDialog()) {
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    try {
+                        ((EPGActivity) getActivity()).getDVBManager()
+                                .loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
+                    } catch (ParseException e) {
+                        Log.e(TAG, "Error in date parsing.", e);
+                    }
                 }
-            }
-        }).start();
+            }).start();
+        }
         return true;
     }
 }

@@ -25,6 +25,7 @@
     <dimen name="margin_channel_change">50dp</dimen>
     <dimen name="width_channel_change">140dp</dimen>
     <dimen name="height_channel_change">100dp</dimen>
-    <dimen name="text_size_channel_change_number">50dp</dimen>
-    <dimen name="text_size_channel_change_name">20dp</dimen>
+    <dimen name="text_size_channel_change_number">50sp</dimen>
+    <dimen name="text_size_channel_change_name">20sp</dimen>
+    <dimen name="text_size_date">18sp</dimen>
 </resources>

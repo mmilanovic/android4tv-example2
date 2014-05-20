@@ -16,18 +16,14 @@
 package com.iwedia.activities;
 
 import android.os.Bundle;
-import android.util.Log;
 import android.widget.ListView;
 
 import com.iwedia.adapters.FragmentTabAdapter;
 import com.iwedia.adapters.ListViewChannelsAdapter;
 import com.iwedia.dtv.DVBManager;
 import com.iwedia.dtv.DVBManager.OnLoadFinishedListener;
-import com.iwedia.dtv.epg.IEpgCallback;
-import com.iwedia.dtv.types.InternalException;
+import com.iwedia.dtv.types.TimeDate;
 import com.iwedia.epg.R;
-
-import java.text.ParseException;
 
 /**
  * EPGActivity - Show current EPG events of all channels for 24h.
@@ -53,6 +49,8 @@ public class EPGActivity extends DTVActivity {
         }
         mAdapterActivityEPGListViewChannels = new ListViewChannelsAdapter(this,
                 mDVBManager.getChannelNames());
+        /** Initialize EPG Date. */
+        mDVBManager.initializeDate();
     }
 
     public ListView getListViewChannels() {
@@ -61,8 +59,8 @@ public class EPGActivity extends DTVActivity {
 
     private OnLoadFinishedListener mOnLoadFinishedListener = new OnLoadFinishedListener() {
         @Override
-        public void onLoadFinished() {
-            mAdapterActivityEPGFragmentTab.notifyAdapters();
+        public void onLoadFinished(String date) {
+            mAdapterActivityEPGFragmentTab.notifyAdapters(date);
         }
     };
 

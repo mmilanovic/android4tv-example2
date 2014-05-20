@@ -25,10 +25,14 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:weightSum="2">
-        <View
+        <TextView
+            android:id="@+id/textview_date"
             android:layout_width="match_parent"
             android:layout_height="0dp"
-            android:layout_weight="0.1"/>
+            android:layout_weight="0.1"
+            android:gravity="center"
+            android:textColor="@android:color/white"
+            android:textSize="@dimen/text_size_date"/>
         <ListView
             android:id="@+id/listview_epg"
             android:layout_width="match_parent"

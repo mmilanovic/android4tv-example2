@@ -44,7 +44,7 @@ public class EPGCallBack implements IEpgCallback {
      */
     private void loadEvents() {
         try {
-            mDVBManager.loadEvents();
+            mDVBManager.loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
         } catch (ParseException e) {
             Log.e(TAG, "There was an error in reloading EPG events.", e);
         }

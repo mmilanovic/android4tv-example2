@@ -19,4 +19,8 @@
     <string name="scrambled">Channel is Scrambled</string>
     <string name="load_ip_channels">Load IP channel list from USB</string>
     <string name="epg">EPG</string>
+    <string name="yes">Yes</string>
+    <string name="no">No</string>
+    <string name="show_epg_next">Show EPG for next day?</string>
+    <string name="show_epg_previous">Show EPG for previous day?</string>
 </resources>

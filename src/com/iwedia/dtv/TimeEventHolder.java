@@ -24,6 +24,10 @@ public class TimeEventHolder {
     private String mEventName = "";
     private Date mBeginTime = null;
     private Date mEndTime = null;
+    private String mDuration = "";
+    private String mDescription = "";
+    private String mParentalRaiting = "";
+    private String mGenere = "";
 
     /**
      * Create Holder
@@ -34,10 +38,23 @@ public class TimeEventHolder {
      * @param endTime
      *        Time when event ends.
      */
-    public TimeEventHolder(String eventName, Date beginTime, Date endTime) {
+    public TimeEventHolder(String eventName, Date beginTime, Date endTime,
+            String description, String parentalRaiting, String genere) {
         mEventName = eventName;
         mBeginTime = beginTime;
         mEndTime = endTime;
+        mDescription = description;
+        mParentalRaiting = parentalRaiting;
+        mGenere = genere;
+        calculateDuration();
+    }
+
+    private void calculateDuration() {
+        long lBeginTime = mBeginTime.getTime();
+        long lEndTime = mEndTime.getTime();
+        long lDuration = lEndTime - lBeginTime;
+        Date lDateDuration = new Date(lDuration);
+        mDuration = lDateDuration.getHours() + ":" + lDateDuration.getMinutes();
     }
 
     public String getEventName() {
@@ -54,9 +71,12 @@ public class TimeEventHolder {
 
     @Override
     public String toString() {
-        return "EventName: " + mEventName + " StartTime: "
+        return "EventName: " + mEventName + "\n\n StartTime: "
                 + mBeginTime.getHours() + ":" + mBeginTime.getMinutes()
-                + " EndTime: " + mEndTime.getHours() + ":"
-                + mEndTime.getMinutes();
+                + "\n\n EndTime: " + mEndTime.getHours() + ":"
+                + mEndTime.getMinutes() + "\n\n Duration: " + mDuration + "\n"
+                + "\n Extended Description: " + mDescription + "\n"
+                + "\n Parental Raiting: " + mParentalRaiting + "\n"
+                + "\n Genere: " + mGenere + "\n" + "\n\n\n";
     }
 }
