@@ -51,10 +51,10 @@ public class TimeEvent {
      */
     public void addEvent(int channel, String eventName, Date beginTime,
             Date endTime, String description, String parentalRaiting,
-            String genere) throws ParseException {
+            String genre) throws ParseException {
         mChannelHolder.get(channel).add(
                 new TimeEventHolder(eventName, beginTime, endTime, description,
-                        parentalRaiting, genere));
+                        parentalRaiting, genre));
     }
 
     public ArrayList<ArrayList<TimeEventHolder>> getEvents() {

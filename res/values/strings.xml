@@ -23,4 +23,15 @@
     <string name="no">No</string>
     <string name="show_epg_next">Show EPG for next day?</string>
     <string name="show_epg_previous">Show EPG for previous day?</string>
+    <string name="epg_genre_news">News</string>
+    <string name="epg_genre_show">Show</string>
+    <string name="epg_genre_children">Children</string>
+    <string name="epg_genre_culture">Culture</string>
+    <string name="epg_genre_politics">Politics</string>
+    <string name="epg_genre_science">Science</string>
+    <string name="epg_genre_hobies">Hobbies</string>
+    <string name="epg_genre_all">All</string>
+    <string name="epg_genre_movies">Movie</string>
+    <string name="parental_no">No Parental Rating</string>
+    <string name="parental_under">Under</string>
 </resources>

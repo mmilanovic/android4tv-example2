@@ -588,40 +588,49 @@ public class DVBManager {
                             lParsedEndTime = new Date(lBeginTime.getYear(),
                                     lBeginTime.getMonth(), lBeginTime.getDay(),
                                     lBeginTime.getHours(), 59, 0);
-                            mTimeEventHolders.get(lBeginTime.getHours())
+                            mTimeEventHolders
+                                    .get(lBeginTime.getHours())
                                     .addEvent(
                                             channelIndex,
                                             lEvent.getName(),
                                             lBeginTime,
                                             lParsedEndTime,
                                             lEvent.getDescription(),
-                                            String.valueOf(lEvent
-                                                    .getParentalRate()),
-                                            String.valueOf(lEvent.getGenre()));
+                                            EPGActivity
+                                                    .getParentalRating(lEvent
+                                                            .getParentalRate()),
+                                            EPGActivity.getEPGGenre(lEvent
+                                                    .getGenre()));
                             lParsedBeginTime = new Date(lEndTime.getYear(),
                                     lEndTime.getMonth(), lEndTime.getDay(),
                                     lEndTime.getHours(), 0, 0);
-                            mTimeEventHolders.get(lEndTime.getHours())
+                            mTimeEventHolders
+                                    .get(lEndTime.getHours())
                                     .addEvent(
                                             channelIndex,
                                             lEvent.getName(),
                                             lParsedBeginTime,
                                             lEndTime,
                                             lEvent.getDescription(),
-                                            String.valueOf(lEvent
-                                                    .getParentalRate()),
-                                            String.valueOf(lEvent.getGenre()));
+                                            EPGActivity
+                                                    .getParentalRating(lEvent
+                                                            .getParentalRate()),
+                                            EPGActivity.getEPGGenre(lEvent
+                                                    .getGenre()));
                         } else {
-                            mTimeEventHolders.get(lBeginTime.getHours())
+                            mTimeEventHolders
+                                    .get(lBeginTime.getHours())
                                     .addEvent(
                                             channelIndex,
                                             lEvent.getName(),
                                             lBeginTime,
                                             lEndTime,
                                             lEvent.getDescription(),
-                                            String.valueOf(lEvent
-                                                    .getParentalRate()),
-                                            String.valueOf(lEvent.getGenre()));
+                                            EPGActivity
+                                                    .getParentalRating(lEvent
+                                                            .getParentalRate()),
+                                            EPGActivity.getEPGGenre(lEvent
+                                                    .getGenre()));
                         }
                         Log.i(TAG, "ChannelIndex: " + channelIndex + "Event: "
                                 + lEvent.getName() + " Begin: "

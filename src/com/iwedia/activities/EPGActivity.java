@@ -67,4 +67,59 @@ public class EPGActivity extends DTVActivity {
     public DVBManager getDVBManager() {
         return mDVBManager;
     }
+
+    /**
+     * Get Genre by index.
+     */
+    public static String getEPGGenre(int genre) {
+        int lStringId = -1;
+        switch (genre) {
+            case 0:
+                lStringId = com.iwedia.epg.R.string.epg_genre_all;
+                break;
+            case 1:
+                lStringId = com.iwedia.epg.R.string.epg_genre_movies;
+                break;
+            case 2:
+                lStringId = com.iwedia.epg.R.string.epg_genre_news;
+                break;
+            case 3:
+                lStringId = com.iwedia.epg.R.string.epg_genre_show;
+                break;
+            case 4:
+                lStringId = com.iwedia.epg.R.string.epg_genre_politics;
+                break;
+            case 6:
+                lStringId = com.iwedia.epg.R.string.epg_genre_children;
+                break;
+            case 7:
+                lStringId = com.iwedia.epg.R.string.epg_genre_culture;
+                break;
+            case 8:
+                lStringId = com.iwedia.epg.R.string.epg_genre_politics;
+                break;
+            case 9:
+                lStringId = com.iwedia.epg.R.string.epg_genre_science;
+                break;
+            case 10:
+                lStringId = com.iwedia.epg.R.string.epg_genre_hobies;
+                break;
+            default:
+                return "";
+        }
+        return sInstance.getApplicationContext().getString(lStringId);
+    }
+
+    /**
+     * Get Parental Rating by Index.
+     */
+    public static String getParentalRating(int rate) {
+        if (rate >= 4 && rate <= 18) {
+            return sInstance.getApplicationContext().getString(
+                    R.string.parental_under)
+                    + rate;
+        }
+        return sInstance.getApplicationContext()
+                .getString(R.string.parental_no);
+    }
 }
