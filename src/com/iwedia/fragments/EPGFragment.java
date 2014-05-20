@@ -1,17 +1,12 @@
 /*
- * Copyright (C) 2014 iWedia S.A.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2014 iWedia S.A. Licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
  */
 package com.iwedia.fragments;
 
@@ -85,6 +80,7 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
 
     /**
      * Set position of event and channel list view, positions have to be same.
+     * 
      * @param position
      *        Position of item.
      */
@@ -98,6 +94,7 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
 
     /**
      * Get Position of event in listview.
+     * 
      * @return Position of item.
      */
     public int getListViewPosition() {
@@ -109,6 +106,7 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
 
     /**
      * Create new adapter with new data.
+     * 
      * @throws RemoteException
      */
     public void reInitializeAdapter() throws RemoteException {
@@ -141,6 +139,7 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
 
     /**
      * Set callback for fragments
+     * 
      * @param notifyFragments
      *        Object of NotifyFragments
      */
@@ -151,7 +150,10 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view,
             int position, long id) {
+        Log.d(TAG, "\n\n\n\n\nLONG CLICK HAPPENED");
         if (!mNotifyFragments.showAlertDialog()) {
+            Log.d(TAG, "LONG CLICK HAPPENED1");
+            ((EPGActivity) getActivity()).getProgressDialog().show();
             new Thread(new Runnable() {
                 @Override
                 public void run() {

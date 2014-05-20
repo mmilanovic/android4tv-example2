@@ -27,7 +27,7 @@ public class TimeEventHolder {
     private String mDuration = "";
     private String mDescription = "";
     private String mParentalRaiting = "";
-    private String mGenere = "";
+    private String mGenre = "";
 
     /**
      * Create Holder
@@ -39,13 +39,13 @@ public class TimeEventHolder {
      *        Time when event ends.
      */
     public TimeEventHolder(String eventName, Date beginTime, Date endTime,
-            String description, String parentalRaiting, String genere) {
+            String description, String parentalRaiting, String genre) {
         mEventName = eventName;
         mBeginTime = beginTime;
         mEndTime = endTime;
         mDescription = description;
         mParentalRaiting = parentalRaiting;
-        mGenere = genere;
+        mGenre = genre;
         calculateDuration();
     }
 
@@ -55,6 +55,10 @@ public class TimeEventHolder {
         long lDuration = lEndTime - lBeginTime;
         Date lDateDuration = new Date(lDuration);
         mDuration = lDateDuration.getHours() + ":" + lDateDuration.getMinutes();
+    }
+
+    private String getParentalRaiting() {
+        return "";
     }
 
     public String getEventName() {
@@ -76,7 +80,7 @@ public class TimeEventHolder {
                 + "\n\n EndTime: " + mEndTime.getHours() + ":"
                 + mEndTime.getMinutes() + "\n\n Duration: " + mDuration + "\n"
                 + "\n Extended Description: " + mDescription + "\n"
-                + "\n Parental Raiting: " + mParentalRaiting + "\n"
-                + "\n Genere: " + mGenere + "\n" + "\n\n\n";
+                + "\n Parental Rating: " + mParentalRaiting + "\n"
+                + "\n Genre: " + mGenre + "\n" + "\n\n\n";
     }
 }

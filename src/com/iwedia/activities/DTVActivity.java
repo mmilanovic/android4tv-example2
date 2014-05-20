@@ -51,7 +51,7 @@ public abstract class DTVActivity extends FragmentActivity {
     private static final String LAST_WATCHED_CHANNEL_INDEX = "last_watched";
     public static final String EXTERNAL_MEDIA_PATH = "/mnt/media/";
     public static final String IP_CHANNELS = "ip_service_list.txt";
-    private static DTVActivity sInstance = null;
+    protected static DTVActivity sInstance = null;
     /** List of IP channels. */
     public static ArrayList<IPService> sIpChannels = null;
     /** DVB manager instance. */
