@@ -1,0 +1,75 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+     Copyright (C) 2014 iWedia S.A.
+
+     Licensed under the Apache License, Version 2.0 (the "License");
+     you may not use this file except in compliance with the License.
+     You may obtain a copy of the License at
+
+          http://www.apache.org/licenses/LICENSE-2.0
+
+     Unless required by applicable law or agreed to in writing, software
+     distributed under the License is distributed on an "AS IS" BASIS,
+     WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+     See the License for the specific language governing permissions and
+     limitations under the License.
+-->
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools" >
+    <item
+        android:id="@+id/menu_genre_all"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_all"/>
+    <item
+        android:id="@+id/menu_genre_movie"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_movie_drama"/>
+    <item
+        android:id="@+id/menu_genre_news"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_news_current_affairs"/>
+    <item
+        android:id="@+id/menu_genre_show"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_show_game_show"/>
+    <item
+        android:id="@+id/menu_genre_sports"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_sports"/>
+    <item
+        android:id="@+id/menu_genre_children"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_children_youth_programmes"/>
+    <item
+        android:id="@+id/menu_genre_music"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_music_ballet_dance"/>
+    <item
+        android:id="@+id/menu_genre_culture"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_arts_culture"/>
+    <item
+        android:id="@+id/menu_genre_politic"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_social_political_issues"/>
+    <item
+        android:id="@+id/menu_genre_science"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_education_science"/>
+    <item
+        android:id="@+id/menu_genre_hobbies"
+        android:checkable="true"
+        android:orderInCategory="100"
+        android:title="@string/genre_leisure_hobbies"/>
+</menu>
