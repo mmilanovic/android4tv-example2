@@ -1,29 +1,30 @@
 /*
- * Copyright (C) 2014 iWedia S.A.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2014 iWedia S.A. Licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
  */
 package com.iwedia.activities;
 
+import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.widget.ListView;
 
 import com.iwedia.adapters.FragmentTabAdapter;
 import com.iwedia.adapters.ListViewChannelsAdapter;
 import com.iwedia.dtv.DVBManager;
 import com.iwedia.dtv.DVBManager.OnLoadFinishedListener;
-import com.iwedia.dtv.types.TimeDate;
+import com.iwedia.dtv.epg.EpgEventGenre;
 import com.iwedia.epg.R;
+
+import java.text.ParseException;
 
 /**
  * EPGActivity - Show current EPG events of all channels for 24h.
@@ -35,6 +36,13 @@ public class EPGActivity extends DTVActivity {
     /** Fragment Bundle Argument Keys */
     private FragmentTabAdapter mAdapterActivityEPGFragmentTab = null;
     private ListViewChannelsAdapter mAdapterActivityEPGListViewChannels = null;
+    private ProgressDialog mProgressDialog;
+    private OnLoadFinishedListener mOnLoadFinishedListener = new OnLoadFinishedListener() {
+        @Override
+        public void onLoadFinished(String date) {
+            mAdapterActivityEPGFragmentTab.notifyAdapters(date);
+        }
+    };
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,21 +59,166 @@ public class EPGActivity extends DTVActivity {
                 mDVBManager.getChannelNames());
         /** Initialize EPG Date. */
         mDVBManager.initializeDate();
+        /** Initialzie progress dialog */
+        mProgressDialog = new ProgressDialog(this);
+        mProgressDialog.setTitle(R.string.progress_info);
+        /** Load EPG events initially */
+        loadEvents();
     }
 
-    public ListView getListViewChannels() {
-        return mAdapterActivityEPGListViewChannels.getListViewChannels();
+    /**
+     * Load EPG events
+     */
+    private void loadEvents() {
+        mProgressDialog.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mDVBManager.loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
     }
 
-    private OnLoadFinishedListener mOnLoadFinishedListener = new OnLoadFinishedListener() {
-        @Override
-        public void onLoadFinished(String date) {
-            mAdapterActivityEPGFragmentTab.notifyAdapters(date);
+    @Override
+    public boolean onCreateOptionsMenu(Menu menu) {
+        MenuInflater inflater = getMenuInflater();
+        inflater.inflate(R.menu.epg_genre, menu);
+        return true;
+    }
+
+    @Override
+    public boolean onPrepareOptionsMenu(Menu menu) {
+        /** ALL */
+        MenuItem checkable = menu.findItem(R.id.menu_genre_all);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.GENRE_ALL ? true
+                        : false);
+        /** CHILDREN */
+        checkable = menu.findItem(R.id.menu_genre_children);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.CHILDREN_YOUTH_PROGRAMMES ? true
+                        : false);
+        /** CULTURE */
+        checkable = menu.findItem(R.id.menu_genre_culture);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.ARTS_CULTURE ? true
+                        : false);
+        /** HOBBIES */
+        checkable = menu.findItem(R.id.menu_genre_hobbies);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.LEISURE_HOBBIES ? true
+                        : false);
+        /** MOVIES */
+        checkable = menu.findItem(R.id.menu_genre_movie);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.MOVIE_DRAMA ? true
+                        : false);
+        /** MUSIC */
+        checkable = menu.findItem(R.id.menu_genre_music);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.MUSIC_BALLET_DANCE ? true
+                        : false);
+        /** NEWS */
+        checkable = menu.findItem(R.id.menu_genre_news);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.NEWS_CURRENT_AFFAIRS ? true
+                        : false);
+        /** POLITIC */
+        checkable = menu.findItem(R.id.menu_genre_politic);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.SOCIAL_POLITICAL_ISSUES_ECONOMICS ? true
+                        : false);
+        /** SCIENCE */
+        checkable = menu.findItem(R.id.menu_genre_science);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.EDUCATION_SCIENCE_FACTUAL_TOPICS ? true
+                        : false);
+        /** SHOW */
+        checkable = menu.findItem(R.id.menu_genre_show);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.SHOW_GAME_SHOW ? true
+                        : false);
+        /** SPORTS */
+        checkable = menu.findItem(R.id.menu_genre_sports);
+        checkable
+                .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.SPORTS ? true
+                        : false);
+        return true;
+    }
+
+    @Override
+    public boolean onOptionsItemSelected(MenuItem item) {
+        /** Handle item selection. */
+        if (!item.isChecked()) {
+            item.setChecked(true);
         }
-    };
-
-    public DVBManager getDVBManager() {
-        return mDVBManager;
+        switch (item.getItemId()) {
+            case R.id.menu_genre_all: {
+                mDVBManager.setGenreFilter(EpgEventGenre.GENRE_ALL);
+                break;
+            }
+            case R.id.menu_genre_children: {
+                mDVBManager
+                        .setGenreFilter(EpgEventGenre.CHILDREN_YOUTH_PROGRAMMES);
+                break;
+            }
+            case R.id.menu_genre_culture: {
+                mDVBManager.setGenreFilter(EpgEventGenre.ARTS_CULTURE);
+                break;
+            }
+            case R.id.menu_genre_hobbies: {
+                mDVBManager.setGenreFilter(EpgEventGenre.LEISURE_HOBBIES);
+                break;
+            }
+            case R.id.menu_genre_movie: {
+                mDVBManager.setGenreFilter(EpgEventGenre.MOVIE_DRAMA);
+                break;
+            }
+            case R.id.menu_genre_music: {
+                mDVBManager.setGenreFilter(EpgEventGenre.MUSIC_BALLET_DANCE);
+                break;
+            }
+            case R.id.menu_genre_news: {
+                mDVBManager.setGenreFilter(EpgEventGenre.NEWS_CURRENT_AFFAIRS);
+                break;
+            }
+            case R.id.menu_genre_politic: {
+                mDVBManager
+                        .setGenreFilter(EpgEventGenre.SOCIAL_POLITICAL_ISSUES_ECONOMICS);
+                break;
+            }
+            case R.id.menu_genre_science: {
+                mDVBManager
+                        .setGenreFilter(EpgEventGenre.EDUCATION_SCIENCE_FACTUAL_TOPICS);
+                break;
+            }
+            case R.id.menu_genre_show: {
+                mDVBManager.setGenreFilter(EpgEventGenre.SHOW_GAME_SHOW);
+                break;
+            }
+            case R.id.menu_genre_sports: {
+                mDVBManager.setGenreFilter(EpgEventGenre.SPORTS);
+                break;
+            }
+            default:
+                return super.onOptionsItemSelected(item);
+        }
+        mProgressDialog.show();
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    mDVBManager.loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
+                } catch (ParseException e) {
+                    e.printStackTrace();
+                }
+            }
+        }).start();
+        return true;
     }
 
     /**
@@ -74,40 +227,39 @@ public class EPGActivity extends DTVActivity {
     public static String getEPGGenre(int genre) {
         int lStringId = -1;
         switch (genre) {
-            case 0:
-                lStringId = com.iwedia.epg.R.string.epg_genre_all;
+            case 0x1:
+                lStringId = R.string.genre_movie_drama;
                 break;
-            case 1:
-                lStringId = com.iwedia.epg.R.string.epg_genre_movies;
+            case 0x2:
+                lStringId = R.string.genre_news_current_affairs;
                 break;
-            case 2:
-                lStringId = com.iwedia.epg.R.string.epg_genre_news;
+            case 0x3:
+                lStringId = R.string.genre_show_game_show;
                 break;
-            case 3:
-                lStringId = com.iwedia.epg.R.string.epg_genre_show;
+            case 0x4:
+                lStringId = R.string.genre_sports;
                 break;
-            case 4:
-                lStringId = com.iwedia.epg.R.string.epg_genre_politics;
+            case 0x5:
+                lStringId = R.string.genre_children_youth_programmes;
                 break;
-            case 6:
-                lStringId = com.iwedia.epg.R.string.epg_genre_children;
+            case 0x6:
+                lStringId = R.string.genre_music_ballet_dance;
                 break;
-            case 7:
-                lStringId = com.iwedia.epg.R.string.epg_genre_culture;
+            case 0x7:
+                lStringId = R.string.genre_arts_culture;
                 break;
-            case 8:
-                lStringId = com.iwedia.epg.R.string.epg_genre_politics;
+            case 0x8:
+                lStringId = R.string.genre_social_political_issues;
                 break;
-            case 9:
-                lStringId = com.iwedia.epg.R.string.epg_genre_science;
+            case 0x9:
+                lStringId = R.string.genre_education_science;
                 break;
-            case 10:
-                lStringId = com.iwedia.epg.R.string.epg_genre_hobies;
+            case 0xA:
+                lStringId = R.string.genre_leisure_hobbies;
                 break;
-            default:
-                return "";
         }
-        return sInstance.getApplicationContext().getString(lStringId);
+        return lStringId == -1 ? "" : sInstance.getApplicationContext()
+                .getString(lStringId);
     }
 
     /**
@@ -121,5 +273,17 @@ public class EPGActivity extends DTVActivity {
         }
         return sInstance.getApplicationContext()
                 .getString(R.string.parental_no);
+    }
+
+    public ProgressDialog getProgressDialog() {
+        return mProgressDialog;
+    }
+
+    public ListView getListViewChannels() {
+        return mAdapterActivityEPGListViewChannels.getListViewChannels();
+    }
+
+    public DVBManager getDVBManager() {
+        return mDVBManager;
     }
 }

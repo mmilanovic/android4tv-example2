@@ -1,17 +1,12 @@
 /*
- * Copyright (C) 2014 iWedia S.A.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2014 iWedia S.A. Licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
  */
 package com.iwedia.dtv;
 
@@ -25,6 +20,8 @@ import com.iwedia.callback.EPGCallBack;
 import com.iwedia.dtv.dtvmanager.DTVManager;
 import com.iwedia.dtv.dtvmanager.IDTVManager;
 import com.iwedia.dtv.epg.EpgEvent;
+import com.iwedia.dtv.epg.EpgEventGenre;
+import com.iwedia.dtv.epg.EpgGenreFilter;
 import com.iwedia.dtv.epg.EpgServiceFilter;
 import com.iwedia.dtv.epg.EpgTimeFilter;
 import com.iwedia.dtv.route.broadcast.IBroadcastRouteControl;
@@ -85,6 +82,8 @@ public class DVBManager {
     private DVBStatus mDVBStatus = null;
     /** EPG Current Day. */
     private int mEPGDay = 0;
+    /** Active EPG genre */
+    private EpgEventGenre mGenre = EpgEventGenre.GENRE_ALL;
 
     /**
      * CallBack for currently DVB status.
@@ -124,6 +123,8 @@ public class DVBManager {
         mEPGCallBack = new EPGCallBack(this);
         mDTVManager.getEpgControl()
                 .registerCallback(mEPGCallBack, mEPGFilterID);
+        /** Initially set genre to ALL */
+        setGenreFilter(EpgEventGenre.GENRE_ALL);
     }
 
     /**
@@ -204,6 +205,8 @@ public class DVBManager {
                 && (mLiveRouteCab != -1 || mLiveRouteSat != -1 || mLiveRouteTer != -1)) {
             ipAndSomeOtherTunerType = true;
         }
+        Log.d(TAG, "mLiveRouteTer=" + mLiveRouteTer + ", mLiveRouteCab="
+                + mLiveRouteCab + ", mLiveRouteIp=" + mLiveRouteIp);
     }
 
     /**
@@ -252,7 +255,7 @@ public class DVBManager {
                 route = getActiveRouteByServiceType(desiredService
                         .getSourceType());
                 int numberOfDtvChannels = getChannelListSize()
-                        - DTVActivity.sIpChannels.size();
+                        - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size());
                 /** Regular DVB channel. */
                 if (channelNumber < numberOfDtvChannels) {
                     mCurrentLiveRoute = route;
@@ -341,7 +344,7 @@ public class DVBManager {
         channelNumber = (channelNumber + getChannelListSize())
                 % getChannelListSize();
         int numberOfDtvChannels = getChannelListSize()
-                - DTVActivity.sIpChannels.size();
+                - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size());
         /** For regular DVB channel. */
         if (channelNumber < numberOfDtvChannels) {
             ServiceDescriptor desiredService = mDTVManager.getServiceControl()
@@ -429,7 +432,7 @@ public class DVBManager {
         ArrayList<String> channelNames = new ArrayList<String>();
         String channelName = "";
         int channelListSize = getChannelListSize()
-                - DTVActivity.sIpChannels.size();
+                - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size());
         IServiceControl serviceControl = mDTVManager.getServiceControl();
         /** If there is IP first element in service list is DUMMY. */
         channelListSize = ipAndSomeOtherTunerType ? channelListSize + 1
@@ -474,7 +477,7 @@ public class DVBManager {
                     + channelNumber + ", List size is: " + getChannelListSize());
         }
         int numberOfDtvChannels = getChannelListSize()
-                - DTVActivity.sIpChannels.size();
+                - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size());
         /** Return DTV channel. */
         if (channelNumber < numberOfDtvChannels) {
             String channelName = mDTVManager
@@ -492,6 +495,14 @@ public class DVBManager {
         }
     }
 
+    public void setGenreFilter(EpgEventGenre genre) {
+        mGenre = genre;
+        EpgGenreFilter genreFilter = new EpgGenreFilter();
+        EnumSet<EpgEventGenre> set = EnumSet.of(genre);
+        genreFilter.setGenre(set);
+        mDTVManager.getEpgControl().setFilter(mEPGFilterID, genreFilter);
+    }
+
     /**
      * Load Events From MW.
      * 
@@ -503,144 +514,130 @@ public class DVBManager {
      * @throws RemoteException
      */
     public void loadEvents(int day) throws ParseException {
-        if (!loadInProgress) {
-            loadInProgress = true;
-            Date lBeginTime = null;
-            Date lEndTime = null;
-            Date lParsedBeginTime = null;
-            Date lParsedEndTime = null;
-            EpgEvent lEvent = null;
-            int lEpgEventsSize = 0;
-            int lEventDay = -1;
-            TimeDate lCurrentTime = mDTVManager.getSetupControl().getTimeDate();
-            switch (day) {
-                case LOAD_EPG_PREVIOUS_DAY: {
-                    if (mEPGDay > 0) {
-                        mEPGDay--;
-                    } else {
-                        mEPGDay = 0;
-                    }
-                    break;
-                }
-                case LOAD_EPG_CURRENT_DAY: {
+        Log.d(TAG, "LOAD EVENTS HAPPENED");
+        Log.d(TAG, "LOAD EVENTS HAPPENED1");
+        loadInProgress = true;
+        Date lBeginTime = null;
+        Date lEndTime = null;
+        Date lParsedBeginTime = null;
+        Date lParsedEndTime = null;
+        EpgEvent lEvent = null;
+        int lEpgEventsSize = 0;
+        int lEventDay = -1;
+        TimeDate lCurrentTime = mDTVManager.getSetupControl().getTimeDate();
+        switch (day) {
+            case LOAD_EPG_PREVIOUS_DAY: {
+                if (mEPGDay > 0) {
+                    mEPGDay--;
+                } else {
                     mEPGDay = 0;
-                    break;
                 }
-                case LOAD_EPG_NEXT_DAY: {
-                    if (mEPGDay < MAX_EPG_DAYS) {
-                        mEPGDay++;
+                break;
+            }
+            case LOAD_EPG_CURRENT_DAY: {
+                mEPGDay = 0;
+                break;
+            }
+            case LOAD_EPG_NEXT_DAY: {
+                if (mEPGDay < MAX_EPG_DAYS) {
+                    mEPGDay++;
+                } else {
+                    mEPGDay = MAX_EPG_DAYS;
+                }
+                break;
+            }
+        }
+        TimeDate lEpgStartTime = new TimeDate(0, 0, 0, lCurrentTime.getDay()
+                + mEPGDay, lCurrentTime.getMonth(), lCurrentTime.getYear());
+        TimeDate lEpgEndTime = new TimeDate(0, 59, 23, lCurrentTime.getDay()
+                + mEPGDay, lCurrentTime.getMonth(), lCurrentTime.getYear());
+        mTimeEventHolders = new ArrayList<TimeEvent>();
+        for (int i = 0; i < EPGActivity.HOURS; i++) {
+            mTimeEventHolders.add(new TimeEvent(getChannelListSize()));
+        }
+        /** Create Time Filter */
+        EpgTimeFilter lEpgTimeFilter = new EpgTimeFilter();
+        lEpgTimeFilter.setTime(lEpgStartTime, lEpgEndTime);
+        /** Make filter list by time. */
+        mDTVManager.getEpgControl().setFilter(mEPGFilterID, lEpgTimeFilter);
+        /** Remove IP Channels, there are not currently EPG for that type. */
+        for (int channelIndex = 0; channelIndex < getChannelListSize()
+                - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size()); channelIndex++) {
+            /** Create Service Filter. */
+            EpgServiceFilter lEpgServiceFilter = new EpgServiceFilter();
+            lEpgServiceFilter.setServiceIndex(channelIndex);
+            /** Set Service Filter. */
+            mDTVManager.getEpgControl().setFilter(mEPGFilterID,
+                    lEpgServiceFilter);
+            /** Reset Filter */
+            mDTVManager.getEpgControl().startAcquisition(mEPGFilterID);
+            lEpgEventsSize = mDTVManager.getEpgControl()
+                    .getAvailableEventsNumber(
+                            mEPGFilterID,
+                            mDTVManager
+                                    .getServiceControl()
+                                    .getServiceDescriptor(mCurrentListIndex,
+                                            channelIndex).getMasterIndex());
+            for (int eventIndex = 0; eventIndex < lEpgEventsSize; eventIndex++) {
+                lEvent = mDTVManager.getEpgControl().getRequestedEvent(
+                        mEPGFilterID, channelIndex, eventIndex);
+                lBeginTime = lEvent.getStartTime().getCalendar().getTime();
+                lEndTime = lEvent.getEndTime().getCalendar().getTime();
+                if (lEventDay == -1) {
+                    lEventDay = lBeginTime.getDay();
+                }
+                if (lBeginTime.getDay() == lEventDay) {
+                    if (lEndTime.getDay() != lEventDay) {
+                        lEndTime = new Date(lBeginTime.getYear(),
+                                lBeginTime.getMonth(), lBeginTime.getDay(),
+                                lBeginTime.getHours(), 59, 0);
+                    }
+                    if (lBeginTime.getHours() < lEndTime.getHours()) {
+                        lParsedEndTime = new Date(lBeginTime.getYear(),
+                                lBeginTime.getMonth(), lBeginTime.getDay(),
+                                lBeginTime.getHours(), 59, 0);
+                        mTimeEventHolders.get(lBeginTime.getHours()).addEvent(
+                                channelIndex,
+                                lEvent.getName(),
+                                lBeginTime,
+                                lParsedEndTime,
+                                lEvent.getDescription(),
+                                EPGActivity.getParentalRating(lEvent
+                                        .getParentalRate()),
+                                EPGActivity.getEPGGenre(lEvent.getGenre()));
+                        lParsedBeginTime = new Date(lEndTime.getYear(),
+                                lEndTime.getMonth(), lEndTime.getDay(),
+                                lEndTime.getHours(), 0, 0);
+                        mTimeEventHolders.get(lEndTime.getHours()).addEvent(
+                                channelIndex,
+                                lEvent.getName(),
+                                lParsedBeginTime,
+                                lEndTime,
+                                lEvent.getDescription(),
+                                EPGActivity.getParentalRating(lEvent
+                                        .getParentalRate()),
+                                EPGActivity.getEPGGenre(lEvent.getGenre()));
                     } else {
-                        mEPGDay = MAX_EPG_DAYS;
+                        mTimeEventHolders.get(lBeginTime.getHours()).addEvent(
+                                channelIndex,
+                                lEvent.getName(),
+                                lBeginTime,
+                                lEndTime,
+                                lEvent.getDescription(),
+                                EPGActivity.getParentalRating(lEvent
+                                        .getParentalRate()),
+                                EPGActivity.getEPGGenre(lEvent.getGenre()));
                     }
-                    break;
+                    Log.i(TAG, "ChannelIndex: " + channelIndex + "Event: "
+                            + lEvent.getName() + " Begin: "
+                            + lEvent.getStartTime().toString() + " End: "
+                            + lEvent.getEndTime().toString() + "\n");
                 }
             }
-            TimeDate lEpgStartTime = new TimeDate(0, 0, 0,
-                    lCurrentTime.getDay() + mEPGDay, lCurrentTime.getMonth(),
-                    lCurrentTime.getYear());
-            TimeDate lEpgEndTime = new TimeDate(0, 59, 23,
-                    lCurrentTime.getDay() + mEPGDay, lCurrentTime.getMonth(),
-                    lCurrentTime.getYear());
-            mTimeEventHolders = new ArrayList<TimeEvent>();
-            for (int i = 0; i < EPGActivity.HOURS; i++) {
-                mTimeEventHolders.add(new TimeEvent(getChannelListSize()));
-            }
-            /** Create Time Filter */
-            EpgTimeFilter lEpgTimeFilter = new EpgTimeFilter();
-            lEpgTimeFilter.setTime(lEpgStartTime, lEpgEndTime);
-            /** Make filter list by time. */
-            mDTVManager.getEpgControl().setFilter(mEPGFilterID, lEpgTimeFilter);
-            /** Remove IP Channels, there are not currently EPG for that type. */
-            for (int channelIndex = 0; channelIndex < getChannelListSize()
-                    - DTVActivity.sIpChannels.size(); channelIndex++) {
-                /** Create Service Filter. */
-                EpgServiceFilter lEpgServiceFilter = new EpgServiceFilter();
-                lEpgServiceFilter.setServiceIndex(channelIndex);
-                /** Set Service Filter. */
-                mDTVManager.getEpgControl().setFilter(mEPGFilterID,
-                        lEpgServiceFilter);
-                /** Reset Filter */
-                mDTVManager.getEpgControl().startAcquisition(mEPGFilterID);
-                lEpgEventsSize = mDTVManager
-                        .getEpgControl()
-                        .getAvailableEventsNumber(
-                                mEPGFilterID,
-                                mDTVManager
-                                        .getServiceControl()
-                                        .getServiceDescriptor(
-                                                mCurrentListIndex, channelIndex)
-                                        .getMasterIndex());
-                for (int eventIndex = 0; eventIndex < lEpgEventsSize; eventIndex++) {
-                    lEvent = mDTVManager.getEpgControl().getRequestedEvent(
-                            mEPGFilterID, channelIndex, eventIndex);
-                    lBeginTime = lEvent.getStartTime().getCalendar().getTime();
-                    lEndTime = lEvent.getEndTime().getCalendar().getTime();
-                    if (lEventDay == -1) {
-                        lEventDay = lBeginTime.getDay();
-                    }
-                    if (lBeginTime.getDay() == lEventDay) {
-                        if (lEndTime.getDay() != lEventDay) {
-                            lEndTime = new Date(lBeginTime.getYear(),
-                                    lBeginTime.getMonth(), lBeginTime.getDay(),
-                                    lBeginTime.getHours(), 59, 0);
-                        }
-                        if (lBeginTime.getHours() < lEndTime.getHours()) {
-                            lParsedEndTime = new Date(lBeginTime.getYear(),
-                                    lBeginTime.getMonth(), lBeginTime.getDay(),
-                                    lBeginTime.getHours(), 59, 0);
-                            mTimeEventHolders
-                                    .get(lBeginTime.getHours())
-                                    .addEvent(
-                                            channelIndex,
-                                            lEvent.getName(),
-                                            lBeginTime,
-                                            lParsedEndTime,
-                                            lEvent.getDescription(),
-                                            EPGActivity
-                                                    .getParentalRating(lEvent
-                                                            .getParentalRate()),
-                                            EPGActivity.getEPGGenre(lEvent
-                                                    .getGenre()));
-                            lParsedBeginTime = new Date(lEndTime.getYear(),
-                                    lEndTime.getMonth(), lEndTime.getDay(),
-                                    lEndTime.getHours(), 0, 0);
-                            mTimeEventHolders
-                                    .get(lEndTime.getHours())
-                                    .addEvent(
-                                            channelIndex,
-                                            lEvent.getName(),
-                                            lParsedBeginTime,
-                                            lEndTime,
-                                            lEvent.getDescription(),
-                                            EPGActivity
-                                                    .getParentalRating(lEvent
-                                                            .getParentalRate()),
-                                            EPGActivity.getEPGGenre(lEvent
-                                                    .getGenre()));
-                        } else {
-                            mTimeEventHolders
-                                    .get(lBeginTime.getHours())
-                                    .addEvent(
-                                            channelIndex,
-                                            lEvent.getName(),
-                                            lBeginTime,
-                                            lEndTime,
-                                            lEvent.getDescription(),
-                                            EPGActivity
-                                                    .getParentalRating(lEvent
-                                                            .getParentalRate()),
-                                            EPGActivity.getEPGGenre(lEvent
-                                                    .getGenre()));
-                        }
-                        Log.i(TAG, "ChannelIndex: " + channelIndex + "Event: "
-                                + lEvent.getName() + " Begin: "
-                                + lEvent.getStartTime().toString() + " End: "
-                                + lEvent.getEndTime().toString() + "\n");
-                    }
-                }
-                mDTVManager.getEpgControl().stopAcquisition(mEPGFilterID);
-            }
-            loadInProgress = false;
+            mDTVManager.getEpgControl().stopAcquisition(mEPGFilterID);
+        }
+        loadInProgress = false;
+        if (mLoadFinishedListener != null) {
             mLoadFinishedListener
                     .onLoadFinished((lCurrentTime.getDay() + mEPGDay) + "/"
                             + lCurrentTime.getMonth() + "/"
@@ -677,5 +674,9 @@ public class DVBManager {
         TimeDate lCurrentTime = mDTVManager.getSetupControl().getTimeDate();
         mLoadFinishedListener.onLoadFinished(lCurrentTime.getDay() + "/"
                 + lCurrentTime.getMonth() + "/" + lCurrentTime.getYear());
+    }
+
+    public EpgEventGenre getActiveGenre() {
+        return mGenre;
     }
 }

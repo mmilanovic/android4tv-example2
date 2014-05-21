@@ -23,15 +23,18 @@
     <string name="no">No</string>
     <string name="show_epg_next">Show EPG for next day?</string>
     <string name="show_epg_previous">Show EPG for previous day?</string>
-    <string name="epg_genre_news">News</string>
-    <string name="epg_genre_show">Show</string>
-    <string name="epg_genre_children">Children</string>
-    <string name="epg_genre_culture">Culture</string>
-    <string name="epg_genre_politics">Politics</string>
-    <string name="epg_genre_science">Science</string>
-    <string name="epg_genre_hobies">Hobbies</string>
-    <string name="epg_genre_all">All</string>
-    <string name="epg_genre_movies">Movie</string>
+    <string name="genre_all">All</string>
+    <string name="genre_movie_drama">Movie/Drama</string>
+    <string name="genre_news_current_affairs">News/Current affairs</string>
+    <string name="genre_show_game_show">Show/Game show</string>
+    <string name="genre_sports">Sports</string>
+    <string name="genre_children_youth_programmes">Children\'s/Youth programmes</string>
+    <string name="genre_music_ballet_dance">Music/Ballet/Dance</string>
+    <string name="genre_arts_culture">Arts/Culture</string>
+    <string name="genre_social_political_issues">Social/Political issues/Economics</string>
+    <string name="genre_education_science">Education/Science/Factual topics</string>
+    <string name="genre_leisure_hobbies">Leisure hobbies</string>
     <string name="parental_no">No Parental Rating</string>
     <string name="parental_under">Under</string>
+    <string name="progress_info">Loading events, please wait...</string>
 </resources>
