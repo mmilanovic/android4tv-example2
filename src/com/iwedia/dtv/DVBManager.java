@@ -297,9 +297,9 @@ public class DVBManager {
      * @throws InternalException
      */
     public void stopDTV() throws InternalException {
+        mDTVManager.getEpgControl().releaseEventList(mEPGFilterID);
         mDTVManager.getEpgControl().unregisterCallback(mEPGCallBack,
                 mEPGFilterID);
-        mDTVManager.getEpgControl().releaseEventList(mEPGFilterID);
         mDTVManager.getServiceControl().stopService(mCurrentLiveRoute);
     }
 
