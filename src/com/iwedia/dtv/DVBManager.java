@@ -255,7 +255,8 @@ public class DVBManager {
                 route = getActiveRouteByServiceType(desiredService
                         .getSourceType());
                 int numberOfDtvChannels = getChannelListSize()
-                        - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size());
+                        - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels
+                                .size());
                 /** Regular DVB channel. */
                 if (channelNumber < numberOfDtvChannels) {
                     mCurrentLiveRoute = route;
@@ -296,9 +297,9 @@ public class DVBManager {
      * @throws InternalException
      */
     public void stopDTV() throws InternalException {
-        mDTVManager.getEpgControl().releaseEventList(mEPGFilterID);
         mDTVManager.getEpgControl().unregisterCallback(mEPGCallBack,
                 mEPGFilterID);
+        mDTVManager.getEpgControl().releaseEventList(mEPGFilterID);
         mDTVManager.getServiceControl().stopService(mCurrentLiveRoute);
     }
 
