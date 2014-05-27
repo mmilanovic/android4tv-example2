@@ -19,8 +19,8 @@
     android:versionCode="1"
     android:versionName="1.0">
     <uses-sdk
-        android:minSdkVersion="15"
-        android:targetSdkVersion="15"/>
+        android:minSdkVersion="14"
+        android:targetSdkVersion="19"/>
     <application
         android:allowBackup="true"
         android:icon="@drawable/iwedia_icon"
