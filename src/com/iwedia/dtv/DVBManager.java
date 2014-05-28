@@ -17,6 +17,8 @@ import android.util.Log;
 import com.iwedia.activities.DTVActivity;
 import com.iwedia.activities.EPGActivity;
 import com.iwedia.callback.EPGCallBack;
+import com.iwedia.callback.PvrCallback;
+import com.iwedia.callback.ReminderCallback;
 import com.iwedia.dtv.dtvmanager.DTVManager;
 import com.iwedia.dtv.dtvmanager.IDTVManager;
 import com.iwedia.dtv.epg.EpgEvent;
@@ -24,10 +26,13 @@ import com.iwedia.dtv.epg.EpgEventGenre;
 import com.iwedia.dtv.epg.EpgGenreFilter;
 import com.iwedia.dtv.epg.EpgServiceFilter;
 import com.iwedia.dtv.epg.EpgTimeFilter;
+import com.iwedia.dtv.pvr.SmartCreateParams;
+import com.iwedia.dtv.reminder.ReminderSmartParam;
 import com.iwedia.dtv.route.broadcast.IBroadcastRouteControl;
 import com.iwedia.dtv.route.broadcast.RouteDemuxDescriptor;
 import com.iwedia.dtv.route.broadcast.RouteFrontendDescriptor;
 import com.iwedia.dtv.route.broadcast.RouteFrontendType;
+import com.iwedia.dtv.route.broadcast.RouteMassStorageDescriptor;
 import com.iwedia.dtv.route.common.ICommonRouteControl;
 import com.iwedia.dtv.route.common.RouteDecoderDescriptor;
 import com.iwedia.dtv.route.common.RouteInputOutputDescriptor;
@@ -61,6 +66,11 @@ public class DVBManager {
     private int mLiveRouteTer = -1;
     private int mLiveRouteCab = -1;
     private int mLiveRouteIp = -1;
+    private int mRecordRouteTer = -1;
+    private int mRecordRouteCab = -1;
+    private int mRecordRouteSat = -1;
+    private int mRecordRouteIp = -1;
+    private int mCurrentRecordRoute = -1;
     /** Currently active list in Comedia. */
     private int mCurrentListIndex = 0;
     /** IP stuff */
@@ -125,6 +135,10 @@ public class DVBManager {
                 .registerCallback(mEPGCallBack, mEPGFilterID);
         /** Initially set genre to ALL */
         setGenreFilter(EpgEventGenre.GENRE_ALL);
+        mDTVManager.getPvrControl().registerCallback(
+                PvrCallback.getInstance(mContext));
+        mDTVManager.getReminderControl().registerCallback(
+                ReminderCallback.getInstance(mContext));
     }
 
     /**
@@ -151,6 +165,12 @@ public class DVBManager {
         RouteInputOutputDescriptor outputDescriptor = commonRouteControl
                 .getInputOutputDescriptor(0);
         /**
+         * RETRIEVING MASS STORAGE DESCRIPTOR.
+         */
+        RouteMassStorageDescriptor massStorageDescriptor = new RouteMassStorageDescriptor();
+        massStorageDescriptor = broadcastRouteControl
+                .getMassStorageDescriptor(0);
+        /**
          * GET NUMBER OF FRONTENDS.
          */
         int numberOfFrontends = broadcastRouteControl.getFrontendNumber();
@@ -170,6 +190,17 @@ public class DVBManager {
                                     demuxDescriptor, decoderDescriptor,
                                     outputDescriptor, broadcastRouteControl);
                         }
+                        /**
+                         * RETRIEVE RECORD ROUTES
+                         */
+                        if (mRecordRouteSat == -1) {
+                            mRecordRouteSat = broadcastRouteControl
+                                    .getRecordRoute(frontendDescriptor
+                                            .getFrontendId(), demuxDescriptor
+                                            .getDemuxId(),
+                                            massStorageDescriptor
+                                                    .getMassStorageId());
+                        }
                         break;
                     }
                     case CAB: {
@@ -177,6 +208,17 @@ public class DVBManager {
                             mLiveRouteCab = getLiveRouteId(frontendDescriptor,
                                     demuxDescriptor, decoderDescriptor,
                                     outputDescriptor, broadcastRouteControl);
+                        }
+                        /**
+                         * RETRIEVE RECORD ROUTES
+                         */
+                        if (mRecordRouteCab == -1) {
+                            mRecordRouteCab = broadcastRouteControl
+                                    .getRecordRoute(frontendDescriptor
+                                            .getFrontendId(), demuxDescriptor
+                                            .getDemuxId(),
+                                            massStorageDescriptor
+                                                    .getMassStorageId());
                         }
                         break;
                     }
@@ -186,6 +228,17 @@ public class DVBManager {
                                     demuxDescriptor, decoderDescriptor,
                                     outputDescriptor, broadcastRouteControl);
                         }
+                        /**
+                         * RETRIEVE RECORD ROUTES
+                         */
+                        if (mRecordRouteTer == -1) {
+                            mRecordRouteTer = broadcastRouteControl
+                                    .getRecordRoute(frontendDescriptor
+                                            .getFrontendId(), demuxDescriptor
+                                            .getDemuxId(),
+                                            massStorageDescriptor
+                                                    .getMassStorageId());
+                        }
                         break;
                     }
                     case IP: {
@@ -193,6 +246,17 @@ public class DVBManager {
                             mLiveRouteIp = getLiveRouteId(frontendDescriptor,
                                     demuxDescriptor, decoderDescriptor,
                                     outputDescriptor, broadcastRouteControl);
+                        }
+                        /**
+                         * RETRIEVE RECORD ROUTES
+                         */
+                        if (mRecordRouteIp == -1) {
+                            mRecordRouteIp = broadcastRouteControl
+                                    .getRecordRoute(frontendDescriptor
+                                            .getFrontendId(), demuxDescriptor
+                                            .getDemuxId(),
+                                            massStorageDescriptor
+                                                    .getMassStorageId());
                         }
                         break;
                     }
@@ -300,6 +364,12 @@ public class DVBManager {
         mDTVManager.getEpgControl().releaseEventList(mEPGFilterID);
         mDTVManager.getEpgControl().unregisterCallback(mEPGCallBack,
                 mEPGFilterID);
+        mDTVManager.getPvrControl().unregisterCallback(
+                PvrCallback.getInstance(mContext));
+        mDTVManager.getReminderControl().unregisterCallback(
+                ReminderCallback.getInstance(mContext));
+        PvrCallback.destroyInstance();
+        ReminderCallback.destroyInstance();
         mDTVManager.getServiceControl().stopService(mCurrentLiveRoute);
     }
 
@@ -403,6 +473,32 @@ public class DVBManager {
             }
             case IP: {
                 return mLiveRouteIp;
+            }
+            default:
+                return -1;
+        }
+    }
+
+    /**
+     * Return record route by service type
+     * 
+     * @param sourceType
+     *        Service type to check.
+     * @return Desired route, or -1 if service type is undefined.
+     */
+    private int getActiveRecordRouteByServiceType(SourceType sourceType) {
+        switch (sourceType) {
+            case CAB: {
+                return mRecordRouteCab;
+            }
+            case TER: {
+                return mRecordRouteTer;
+            }
+            case SAT: {
+                return mRecordRouteSat;
+            }
+            case IP: {
+                return mRecordRouteIp;
             }
             default:
                 return -1;
@@ -566,22 +662,30 @@ public class DVBManager {
                 - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size()); channelIndex++) {
             /** Create Service Filter. */
             EpgServiceFilter lEpgServiceFilter = new EpgServiceFilter();
-            lEpgServiceFilter.setServiceIndex(channelIndex);
+            lEpgServiceFilter
+                    .setServiceIndex(ipAndSomeOtherTunerType ? channelIndex + 1
+                            : channelIndex);
             /** Set Service Filter. */
             mDTVManager.getEpgControl().setFilter(mEPGFilterID,
                     lEpgServiceFilter);
             /** Reset Filter */
             mDTVManager.getEpgControl().startAcquisition(mEPGFilterID);
-            lEpgEventsSize = mDTVManager.getEpgControl()
+            lEpgEventsSize = mDTVManager
+                    .getEpgControl()
                     .getAvailableEventsNumber(
                             mEPGFilterID,
                             mDTVManager
                                     .getServiceControl()
-                                    .getServiceDescriptor(mCurrentListIndex,
-                                            channelIndex).getMasterIndex());
+                                    .getServiceDescriptor(
+                                            mCurrentListIndex,
+                                            ipAndSomeOtherTunerType ? channelIndex + 1
+                                                    : channelIndex)
+                                    .getMasterIndex());
             for (int eventIndex = 0; eventIndex < lEpgEventsSize; eventIndex++) {
                 lEvent = mDTVManager.getEpgControl().getRequestedEvent(
-                        mEPGFilterID, channelIndex, eventIndex);
+                        mEPGFilterID,
+                        ipAndSomeOtherTunerType ? channelIndex + 1
+                                : channelIndex, eventIndex);
                 lBeginTime = lEvent.getStartTime().getCalendar().getTime();
                 lEndTime = lEvent.getEndTime().getCalendar().getTime();
                 if (lEventDay == -1) {
@@ -605,7 +709,8 @@ public class DVBManager {
                                 lEvent.getDescription(),
                                 EPGActivity.getParentalRating(lEvent
                                         .getParentalRate()),
-                                EPGActivity.getEPGGenre(lEvent.getGenre()));
+                                EPGActivity.getEPGGenre(lEvent.getGenre()),
+                                lEvent);
                         lParsedBeginTime = new Date(lEndTime.getYear(),
                                 lEndTime.getMonth(), lEndTime.getDay(),
                                 lEndTime.getHours(), 0, 0);
@@ -617,7 +722,8 @@ public class DVBManager {
                                 lEvent.getDescription(),
                                 EPGActivity.getParentalRating(lEvent
                                         .getParentalRate()),
-                                EPGActivity.getEPGGenre(lEvent.getGenre()));
+                                EPGActivity.getEPGGenre(lEvent.getGenre()),
+                                lEvent);
                     } else {
                         mTimeEventHolders.get(lBeginTime.getHours()).addEvent(
                                 channelIndex,
@@ -627,7 +733,8 @@ public class DVBManager {
                                 lEvent.getDescription(),
                                 EPGActivity.getParentalRating(lEvent
                                         .getParentalRate()),
-                                EPGActivity.getEPGGenre(lEvent.getGenre()));
+                                EPGActivity.getEPGGenre(lEvent.getGenre()),
+                                lEvent);
                     }
                     Log.i(TAG, "ChannelIndex: " + channelIndex + "Event: "
                             + lEvent.getName() + " Begin: "
@@ -644,6 +751,36 @@ public class DVBManager {
                             + lCurrentTime.getMonth() + "/"
                             + lCurrentTime.getYear());
         }
+    }
+
+    /**
+     * Creates PVR smart record based on EPG event.
+     * 
+     * @param params
+     *        Smart record params.
+     * @throws IllegalArgumentException
+     * @throws InternalException
+     */
+    public void createSmartRecord(SmartCreateParams params)
+            throws IllegalArgumentException, InternalException {
+        ServiceDescriptor descriptor = mDTVManager.getServiceControl()
+                .getServiceDescriptor(mCurrentListIndex,
+                        params.getServiceIndex());
+        mDTVManager.getPvrControl().createSmartRecord(
+                getActiveRecordRouteByServiceType(descriptor.getSourceType()),
+                params);
+    }
+
+    /**
+     * Creates reminder based on EPG event.
+     * 
+     * @param param
+     * @throws IllegalArgumentException
+     * @throws InternalException
+     */
+    public void createReminder(ReminderSmartParam param)
+            throws IllegalArgumentException, InternalException {
+        mDTVManager.getReminderControl().createSmart(param);
     }
 
     /**

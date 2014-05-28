@@ -37,4 +37,9 @@
     <string name="parental_no">No Parental Rating</string>
     <string name="parental_under">Under</string>
     <string name="progress_info">Loading events, please wait...</string>
+    <string name="create_smart_record">Create smart record</string>
+    <string name="create_reminder">Create reminder</string>
+    <string name="smart_record_created">Smart record created!</string>
+    <string name="smart_record_failed">Failed to create smart record!</string>
+    <string name="reminder_created">Reminder created!</string>
 </resources>

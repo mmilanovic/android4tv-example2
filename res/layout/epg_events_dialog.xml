@@ -14,15 +14,40 @@
      See the License for the specific language governing permissions and
      limitations under the License.
 -->
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<RelativeLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
-    android:layout_height="match_parent">
+    android:layout_height="match_parent" >
+    <ScrollView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_above="@+id/dummy"
+        android:fillViewport="true" >
+        <LinearLayout
+            android:id="@+id/linearlayout_events"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="@dimen/epg_over_scale_padding" >
+        </LinearLayout>
+    </ScrollView>
     <LinearLayout
-        android:id="@+id/linearlayout_events"
+        android:id="@+id/dummy"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="vertical"
-        android:padding="@dimen/epg_over_scale_padding">
+        android:layout_alignParentBottom="true"
+        android:orientation="horizontal" >
+        <Button
+            android:id="@+id/buttonCreateSmartRecord"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/create_smart_record" />
+        <Button
+            android:id="@+id/buttonCreateReminder"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="@string/create_reminder" />
     </LinearLayout>
-</ScrollView>
+</RelativeLayout>

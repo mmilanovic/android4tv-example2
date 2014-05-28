@@ -1,17 +1,12 @@
 /*
- * Copyright (C) 2014 iWedia S.A.
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- *      http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
+ * Copyright (C) 2014 iWedia S.A. Licensed under the Apache License, Version 2.0
+ * (the "License"); you may not use this file except in compliance with the
+ * License. You may obtain a copy of the License at
+ * http://www.apache.org/licenses/LICENSE-2.0 Unless required by applicable law
+ * or agreed to in writing, software distributed under the License is
+ * distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY
+ * KIND, either express or implied. See the License for the specific language
+ * governing permissions and limitations under the License.
  */
 package com.iwedia.custom;
 
@@ -26,11 +21,17 @@ import android.graphics.Path;
 import android.util.AttributeSet;
 import android.view.LayoutInflater;
 import android.view.View;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.ScrollView;
 import android.widget.TextView;
+import android.widget.Toast;
 
+import com.iwedia.dtv.DVBManager;
 import com.iwedia.dtv.TimeEventHolder;
+import com.iwedia.dtv.pvr.SmartCreateParams;
+import com.iwedia.dtv.reminder.ReminderSmartParam;
+import com.iwedia.dtv.types.InternalException;
 import com.iwedia.epg.R;
 
 import java.util.ArrayList;
@@ -64,6 +65,7 @@ public class TimeLineObject extends View {
 
     /**
      * Draw rectangle with specific width according to begin and end time.
+     * 
      * @param canvas
      *        Canvas from view.
      */
@@ -93,6 +95,7 @@ public class TimeLineObject extends View {
     /**
      * Draw black borders at the end of every event, because events are the same
      * color and this helps user to recognize one event.
+     * 
      * @param canvas
      *        Canvas from view.
      * @param xEndPosition
@@ -124,21 +127,59 @@ public class TimeLineObject extends View {
      */
     public void showDialogWithEvents() {
         if (null != mTimeEventHolder && mTimeEventHolder.size() > 0) {
-            ScrollView lScrollView = (ScrollView) ((LayoutInflater) mContext
+            View lView = ((LayoutInflater) mContext
                     .getSystemService(Service.LAYOUT_INFLATER_SERVICE))
                     .inflate(R.layout.epg_events_dialog, null);
-            LinearLayout lLinearLayout = (LinearLayout) lScrollView
+            LinearLayout lLinearLayout = (LinearLayout) lView
                     .findViewById(R.id.linearlayout_events);
-            for (TimeEventHolder holder : mTimeEventHolder) {
-                TextView lTextView = new TextView(mContext);
-                lTextView.setText(holder.toString());
-                lLinearLayout.addView(lTextView);
-                /** Show only one Event. */
-                break;
-            }
+            Button lPvrRecord = (Button) lView
+                    .findViewById(R.id.buttonCreateSmartRecord);
+            Button lReminder = (Button) lView
+                    .findViewById(R.id.buttonCreateReminder);
+            final TimeEventHolder holder = mTimeEventHolder.get(0);
+            TextView lTextView = new TextView(mContext);
+            lTextView.setText(holder.toString());
+            lLinearLayout.addView(lTextView);
+            lPvrRecord.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        DVBManager.getInstance().createSmartRecord(
+                                new SmartCreateParams(holder.getEvent()
+                                        .getServiceIndex(), holder.getEvent()
+                                        .getEventId(), holder.getEvent()
+                                        .getName(), holder.getEvent()
+                                        .getDescription(), holder.getEvent()
+                                        .getStartTime(), holder.getEvent()
+                                        .getEndTime()));
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                    } catch (InternalException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
+            lReminder.setOnClickListener(new OnClickListener() {
+                @Override
+                public void onClick(View v) {
+                    try {
+                        DVBManager.getInstance().createReminder(
+                                new ReminderSmartParam(holder.getEvent()
+                                        .getName(), holder.getEvent()
+                                        .getDescription(), holder.getEvent()
+                                        .getServiceIndex(), 0, holder
+                                        .getEvent().getEventId(), holder
+                                        .getEvent().getStartTime()));
+                    } catch (IllegalArgumentException e) {
+                        e.printStackTrace();
+                    } catch (InternalException e) {
+                        e.printStackTrace();
+                    }
+                }
+            });
             Dialog lDialog = new Dialog(mContext);
             lDialog.setTitle(mChannelName);
-            lDialog.setContentView(lScrollView);
+            lDialog.setContentView(lView);
             lDialog.show();
         }
     }
