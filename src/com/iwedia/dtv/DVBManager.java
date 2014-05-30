@@ -44,6 +44,7 @@ import com.iwedia.dtv.types.TimeDate;
 
 import java.text.ParseException;
 import java.util.ArrayList;
+import java.util.Calendar;
 import java.util.Date;
 import java.util.EnumSet;
 
@@ -512,12 +513,14 @@ public class DVBManager {
         int serviceCount = mDTVManager.getServiceControl().getServiceListCount(
                 mCurrentListIndex);
         if (ipAndSomeOtherTunerType) {
-            serviceCount += DTVActivity.sIpChannels.size();
+            serviceCount += DTVActivity.sIpChannels == null ? 0
+                    : DTVActivity.sIpChannels.size();
             serviceCount--;
         } else
         /** Only IP. */
         if (mLiveRouteIp != -1) {
-            serviceCount = DTVActivity.sIpChannels.size();
+            serviceCount = DTVActivity.sIpChannels == null ? 0
+                    : DTVActivity.sIpChannels.size();
         }
         return serviceCount;
     }
@@ -611,8 +614,6 @@ public class DVBManager {
      * @throws RemoteException
      */
     public void loadEvents(int day) throws ParseException {
-        Log.d(TAG, "LOAD EVENTS HAPPENED");
-        Log.d(TAG, "LOAD EVENTS HAPPENED1");
         loadInProgress = true;
         Date lBeginTime = null;
         Date lEndTime = null;
@@ -644,10 +645,14 @@ public class DVBManager {
                 break;
             }
         }
-        TimeDate lEpgStartTime = new TimeDate(0, 0, 0, lCurrentTime.getDay()
-                + mEPGDay, lCurrentTime.getMonth(), lCurrentTime.getYear());
-        TimeDate lEpgEndTime = new TimeDate(0, 59, 23, lCurrentTime.getDay()
-                + mEPGDay, lCurrentTime.getMonth(), lCurrentTime.getYear());
+        Calendar lCalendar = lCurrentTime.getCalendar();
+        lCalendar.add(Calendar.DATE, mEPGDay);
+        TimeDate lEpgStartTime = new TimeDate(0, 0, 0,
+                lCalendar.get(Calendar.DAY_OF_MONTH),
+                lCalendar.get(Calendar.MONTH + 1), lCalendar.get(Calendar.YEAR));
+        TimeDate lEpgEndTime = new TimeDate(0, 59, 23,
+                lCalendar.get(Calendar.DAY_OF_MONTH),
+                lCalendar.get(Calendar.MONTH + 1), lCalendar.get(Calendar.YEAR));
         mTimeEventHolders = new ArrayList<TimeEvent>();
         for (int i = 0; i < EPGActivity.HOURS; i++) {
             mTimeEventHolders.add(new TimeEvent(getChannelListSize()));
@@ -658,8 +663,9 @@ public class DVBManager {
         /** Make filter list by time. */
         mDTVManager.getEpgControl().setFilter(mEPGFilterID, lEpgTimeFilter);
         /** Remove IP Channels, there are not currently EPG for that type. */
-        for (int channelIndex = 0; channelIndex < getChannelListSize()
-                - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size()); channelIndex++) {
+        int count = getChannelListSize()
+                - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size());
+        for (int channelIndex = 0; channelIndex < count; channelIndex++) {
             /** Create Service Filter. */
             EpgServiceFilter lEpgServiceFilter = new EpgServiceFilter();
             lEpgServiceFilter
@@ -736,20 +742,18 @@ public class DVBManager {
                                 EPGActivity.getEPGGenre(lEvent.getGenre()),
                                 lEvent);
                     }
-                    Log.i(TAG, "ChannelIndex: " + channelIndex + "Event: "
-                            + lEvent.getName() + " Begin: "
-                            + lEvent.getStartTime().toString() + " End: "
-                            + lEvent.getEndTime().toString() + "\n");
                 }
             }
             mDTVManager.getEpgControl().stopAcquisition(mEPGFilterID);
         }
         loadInProgress = false;
         if (mLoadFinishedListener != null) {
-            mLoadFinishedListener
-                    .onLoadFinished((lCurrentTime.getDay() + mEPGDay) + "/"
-                            + lCurrentTime.getMonth() + "/"
-                            + lCurrentTime.getYear());
+            mLoadFinishedListener.onLoadFinished(lCalendar
+                    .get(Calendar.DAY_OF_MONTH)
+                    + "/"
+                    + (lCalendar.get(Calendar.MONTH) + 1)
+                    + "/"
+                    + lCalendar.get(Calendar.YEAR));
         }
     }
 
