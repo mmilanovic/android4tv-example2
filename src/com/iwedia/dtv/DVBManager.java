@@ -372,6 +372,7 @@ public class DVBManager {
         PvrCallback.destroyInstance();
         ReminderCallback.destroyInstance();
         mDTVManager.getServiceControl().stopService(mCurrentLiveRoute);
+        sInstance = null;
     }
 
     /**
