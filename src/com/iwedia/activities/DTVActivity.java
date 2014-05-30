@@ -13,6 +13,7 @@ package com.iwedia.activities;
 import android.content.Context;
 import android.content.ContextWrapper;
 import android.content.SharedPreferences;
+import android.graphics.PixelFormat;
 import android.os.Bundle;
 import android.support.v4.app.FragmentActivity;
 import android.util.Log;
@@ -43,7 +44,6 @@ import java.util.ArrayList;
 public abstract class DTVActivity extends FragmentActivity {
     public static final String TAG = "DTVExample-Channel Zapp";
     public static final String FINISH_ACTIVITIES_MESSAGE = "activity_finish";
-    private static final String LAST_WATCHED_CHANNEL_INDEX = "last_watched";
     public static final String EXTERNAL_MEDIA_PATH = "/mnt/media/";
     public static final String IP_CHANNELS = "ip_service_list.txt";
     protected static DTVActivity sInstance = null;
@@ -61,6 +61,9 @@ public abstract class DTVActivity extends FragmentActivity {
         getWindow().addFlags(WindowManager.LayoutParams.FLAG_FULLSCREEN);
         getWindow().clearFlags(
                 WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
+        getWindow().setFormat(PixelFormat.RGBA_8888);
+        getWindow().addFlags(WindowManager.LayoutParams.FLAG_DITHER);
+        getWindow().getDecorView().getBackground().setDither(true);
         /** Creates DTV manager object and connects it to service. */
         try {
             mDVBManager = DVBManager.getInstance();
@@ -77,19 +80,6 @@ public abstract class DTVActivity extends FragmentActivity {
                 "Error with connection happened, closing application...",
                 Toast.LENGTH_LONG).show();
         super.finish();
-    }
-
-    public static SharedPreferences getSharedPreferences() {
-        return sInstance.getSharedPreferences(TAG, MODE_PRIVATE);
-    }
-
-    public static void setLastWatchedChannelIndex(int index) {
-        getSharedPreferences().edit().putInt(LAST_WATCHED_CHANNEL_INDEX, index)
-                .commit();
-    }
-
-    public static int getLastWatchedChannelIndex() {
-        return getSharedPreferences().getInt(LAST_WATCHED_CHANNEL_INDEX, 0);
     }
 
     /**

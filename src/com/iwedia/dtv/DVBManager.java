@@ -451,7 +451,6 @@ public class DVBManager {
                     DTVActivity.sIpChannels.get(
                             channelNumber - numberOfDtvChannels).getUrl());
         }
-        DTVActivity.setLastWatchedChannelIndex(channelNumber);
         return getChannelInfo(channelNumber);
     }
 

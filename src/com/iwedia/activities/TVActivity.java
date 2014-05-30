@@ -76,13 +76,10 @@ public class TVActivity extends DTVActivity {
         mBufferedChannelIndex = new StringBuilder();
         /** Start DTV. */
         try {
-            mChannelInfo = mDVBManager.startDTV(getLastWatchedChannelIndex());
+            mChannelInfo = mDVBManager.startDTV(0);
         } catch (IllegalArgumentException e) {
-            Toast.makeText(
-                    this,
-                    "Cant play service with index: "
-                            + getLastWatchedChannelIndex(), Toast.LENGTH_SHORT)
-                    .show();
+            Toast.makeText(this, "Cant play service with index: " + 0,
+                    Toast.LENGTH_SHORT).show();
         } catch (InternalException e) {
             /** Error with service connection. */
             finishActivity();
