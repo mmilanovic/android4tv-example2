@@ -16,7 +16,7 @@
 -->
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
-    xmlns:tools="http://schemas.android.com/tools">
+    xmlns:tools="http://schemas.android.com/tools" >
     <item
         android:id="@+id/menu_scan_usb"
         android:orderInCategory="100"
@@ -25,4 +25,12 @@
         android:id="@+id/menu_start_epg"
         android:orderInCategory="100"
         android:title="@string/epg"/>
+    <item
+        android:id="@+id/menu_manual_pvr"
+        android:orderInCategory="100"
+        android:title="@string/manual_pvr"/>
+    <item
+        android:id="@+id/menu_manual_reminder"
+        android:orderInCategory="100"
+        android:title="@string/manual_reminder"/>
 </menu>

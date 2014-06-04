@@ -10,7 +10,6 @@
  */
 package com.iwedia.dtv;
 
-import android.content.Context;
 import android.os.RemoteException;
 import android.util.Log;
 
@@ -26,8 +25,12 @@ import com.iwedia.dtv.epg.EpgEventGenre;
 import com.iwedia.dtv.epg.EpgGenreFilter;
 import com.iwedia.dtv.epg.EpgServiceFilter;
 import com.iwedia.dtv.epg.EpgTimeFilter;
+import com.iwedia.dtv.pvr.IPvrCallback;
 import com.iwedia.dtv.pvr.SmartCreateParams;
+import com.iwedia.dtv.pvr.TimerCreateParams;
+import com.iwedia.dtv.reminder.IReminderCallback;
 import com.iwedia.dtv.reminder.ReminderSmartParam;
+import com.iwedia.dtv.reminder.ReminderTimerParam;
 import com.iwedia.dtv.route.broadcast.IBroadcastRouteControl;
 import com.iwedia.dtv.route.broadcast.RouteDemuxDescriptor;
 import com.iwedia.dtv.route.broadcast.RouteFrontendDescriptor;
@@ -60,7 +63,6 @@ public class DVBManager {
     public static final int LOAD_EPG_PREVIOUS_DAY = -1;
     public static final int LOAD_EPG_CURRENT_DAY = 0;
     public static final int LOAD_EPG_NEXT_DAY = 1;
-    private Context mContext = null;
     private IDTVManager mDTVManager = null;
     private int mCurrentLiveRoute = -1;
     private int mLiveRouteSat = -1;
@@ -95,6 +97,8 @@ public class DVBManager {
     private int mEPGDay = 0;
     /** Active EPG genre */
     private EpgEventGenre mGenre = EpgEventGenre.GENRE_ALL;
+    private IPvrCallback mPvrCallback;
+    private IReminderCallback mReminderCallback;
 
     /**
      * CallBack for currently DVB status.
@@ -136,10 +140,6 @@ public class DVBManager {
                 .registerCallback(mEPGCallBack, mEPGFilterID);
         /** Initially set genre to ALL */
         setGenreFilter(EpgEventGenre.GENRE_ALL);
-        mDTVManager.getPvrControl().registerCallback(
-                PvrCallback.getInstance(mContext));
-        mDTVManager.getReminderControl().registerCallback(
-                ReminderCallback.getInstance(mContext));
     }
 
     /**
@@ -365,14 +365,35 @@ public class DVBManager {
         mDTVManager.getEpgControl().releaseEventList(mEPGFilterID);
         mDTVManager.getEpgControl().unregisterCallback(mEPGCallBack,
                 mEPGFilterID);
-        mDTVManager.getPvrControl().unregisterCallback(
-                PvrCallback.getInstance(mContext));
-        mDTVManager.getReminderControl().unregisterCallback(
-                ReminderCallback.getInstance(mContext));
+        try {
+            mDTVManager.getPvrControl().unregisterCallback(mPvrCallback);
+        } catch (IllegalArgumentException e) {
+        }
+        try {
+            mDTVManager.getReminderControl().unregisterCallback(
+                    mReminderCallback);
+        } catch (IllegalArgumentException e) {
+        }
         PvrCallback.destroyInstance();
         ReminderCallback.destroyInstance();
         mDTVManager.getServiceControl().stopService(mCurrentLiveRoute);
         sInstance = null;
+    }
+
+    /**
+     * Registers PVR callback.
+     */
+    public void registerPvrCallback(IPvrCallback callback) {
+        mPvrCallback = callback;
+        mDTVManager.getPvrControl().registerCallback(callback);
+    }
+
+    /**
+     * Registers reminder callback.
+     */
+    public void registerReminderCallback(IReminderCallback callback) {
+        mReminderCallback = callback;
+        mDTVManager.getReminderControl().registerCallback(callback);
     }
 
     /**
@@ -758,6 +779,13 @@ public class DVBManager {
     }
 
     /**
+     * Returns time from stream.
+     */
+    public TimeDate getCurrentTime() {
+        return mDTVManager.getSetupControl().getTimeDate();
+    }
+
+    /**
      * Creates PVR smart record based on EPG event.
      * 
      * @param params
@@ -776,6 +804,24 @@ public class DVBManager {
     }
 
     /**
+     * Creates timer PVR record.
+     * 
+     * @param params
+     *        Smart record params.
+     * @throws IllegalArgumentException
+     * @throws InternalException
+     */
+    public void createTimerRecord(TimerCreateParams params)
+            throws IllegalArgumentException, InternalException {
+        ServiceDescriptor descriptor = mDTVManager.getServiceControl()
+                .getServiceDescriptor(mCurrentListIndex,
+                        params.getServiceIndex());
+        mDTVManager.getPvrControl().createTimerRecord(
+                getActiveRecordRouteByServiceType(descriptor.getSourceType()),
+                params);
+    }
+
+    /**
      * Creates reminder based on EPG event.
      * 
      * @param param
@@ -785,6 +831,18 @@ public class DVBManager {
     public void createReminder(ReminderSmartParam param)
             throws IllegalArgumentException, InternalException {
         mDTVManager.getReminderControl().createSmart(param);
+    }
+
+    /**
+     * Creates manual timer reminder.
+     * 
+     * @param param
+     * @throws IllegalArgumentException
+     * @throws InternalException
+     */
+    public void createReminderManual(ReminderTimerParam param)
+            throws IllegalArgumentException, InternalException {
+        mDTVManager.getReminderControl().createTimer(param);
     }
 
     /**
@@ -820,5 +878,9 @@ public class DVBManager {
 
     public EpgEventGenre getActiveGenre() {
         return mGenre;
+    }
+
+    public boolean isIpAndSomeOtherTunerType() {
+        return ipAndSomeOtherTunerType;
     }
 }

@@ -11,7 +11,10 @@
 package com.iwedia.activities;
 
 import android.content.ContextWrapper;
+import android.content.DialogInterface;
+import android.content.DialogInterface.OnCancelListener;
 import android.content.Intent;
+import android.graphics.Point;
 import android.media.MediaPlayer;
 import android.media.MediaPlayer.OnErrorListener;
 import android.net.Uri;
@@ -19,6 +22,7 @@ import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.util.Log;
+import android.view.Display;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -29,6 +33,8 @@ import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
+import com.iwedia.callback.PvrCallback;
+import com.iwedia.callback.ReminderCallback;
 import com.iwedia.dtv.ChannelInfo;
 import com.iwedia.dtv.IPService;
 import com.iwedia.dtv.types.InternalException;
@@ -59,6 +65,8 @@ public class TVActivity extends DTVActivity {
     private StringBuilder mBufferedChannelIndex = null;
     /** Current Channel Info */
     private ChannelInfo mChannelInfo = null;
+    private ManualReminderDialog mReminderDialog;
+    private ManualPvrRecordDialog mPvrRecordDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -74,6 +82,12 @@ public class TVActivity extends DTVActivity {
         mHandler = new UiHandler();
         /** Initialize String Builder */
         mBufferedChannelIndex = new StringBuilder();
+        /** Initialize dialogs. */
+        initializeDialogs();
+        /** Register callbacks */
+        mDVBManager.registerPvrCallback(PvrCallback.getInstance(this));
+        mDVBManager
+                .registerReminderCallback(ReminderCallback.getInstance(this));
         /** Start DTV. */
         try {
             mChannelInfo = mDVBManager.startDTV(0);
@@ -108,6 +122,14 @@ public class TVActivity extends DTVActivity {
                         EPGActivity.class));
                 return true;
             }
+            case R.id.menu_manual_pvr: {
+                mPvrRecordDialog.show();
+                return true;
+            }
+            case R.id.menu_manual_reminder: {
+                mReminderDialog.show();
+                return true;
+            }
             default:
                 return super.onOptionsItemSelected(item);
         }
@@ -122,6 +144,22 @@ public class TVActivity extends DTVActivity {
                 + DTVActivity.IP_CHANNELS;
         sIpChannels = new ArrayList<IPService>();
         DTVActivity.readFile(this, path, sIpChannels);
+    }
+
+    private void initializeDialogs() {
+        Display display = getWindowManager().getDefaultDisplay();
+        Point size = new Point();
+        display.getSize(size);
+        mPvrRecordDialog = new ManualPvrRecordDialog(this, size.x, size.y);
+        mReminderDialog = new ManualReminderDialog(this, size.x, size.y);
+        OnCancelListener listener = new OnCancelListener() {
+            @Override
+            public void onCancel(DialogInterface dialog) {
+                showChannelInfo(mChannelInfo);
+            }
+        };
+        mPvrRecordDialog.setOnCancelListener(listener);
+        mReminderDialog.setOnCancelListener(listener);
     }
 
     @Override

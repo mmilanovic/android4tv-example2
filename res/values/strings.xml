@@ -42,4 +42,6 @@
     <string name="smart_record_created">Smart record created!</string>
     <string name="smart_record_failed">Failed to create smart record!</string>
     <string name="reminder_created">Reminder created!</string>
+    <string name="manual_pvr">Manual record</string>
+    <string name="manual_reminder">Manual reminder</string>
 </resources>
