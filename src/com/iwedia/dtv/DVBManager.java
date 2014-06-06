@@ -668,12 +668,12 @@ public class DVBManager {
         }
         Calendar lCalendar = lCurrentTime.getCalendar();
         lCalendar.add(Calendar.DATE, mEPGDay);
-        TimeDate lEpgStartTime = new TimeDate(0, 0, 0,
+        TimeDate lEpgStartTime = new TimeDate(1, 1, 0,
                 lCalendar.get(Calendar.DAY_OF_MONTH),
-                lCalendar.get(Calendar.MONTH + 1), lCalendar.get(Calendar.YEAR));
-        TimeDate lEpgEndTime = new TimeDate(0, 59, 23,
+                lCalendar.get(Calendar.MONTH) + 1, lCalendar.get(Calendar.YEAR));
+        TimeDate lEpgEndTime = new TimeDate(0, 0, 0,
                 lCalendar.get(Calendar.DAY_OF_MONTH),
-                lCalendar.get(Calendar.MONTH + 1), lCalendar.get(Calendar.YEAR));
+                lCalendar.get(Calendar.MONTH) + 1, lCalendar.get(Calendar.YEAR));
         mTimeEventHolders = new ArrayList<TimeEvent>();
         for (int i = 0; i < EPGActivity.HOURS; i++) {
             mTimeEventHolders.add(new TimeEvent(getChannelListSize()));
