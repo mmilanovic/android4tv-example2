@@ -97,8 +97,8 @@ public class DVBManager {
     private int mEPGDay = 0;
     /** Active EPG genre */
     private EpgEventGenre mGenre = EpgEventGenre.GENRE_ALL;
-    private IPvrCallback mPvrCallback;
-    private IReminderCallback mReminderCallback;
+    private IPvrCallback mPvrCallback = null;
+    private IReminderCallback mReminderCallback = null;
 
     /**
      * CallBack for currently DVB status.
@@ -654,7 +654,7 @@ public class DVBManager {
                 break;
             }
             case LOAD_EPG_CURRENT_DAY: {
-                mEPGDay = 0;
+                /** Do Nothing, Don't Change Index. */
                 break;
             }
             case LOAD_EPG_NEXT_DAY: {
@@ -708,11 +708,16 @@ public class DVBManager {
                                             ipAndSomeOtherTunerType ? channelIndex + 1
                                                     : channelIndex)
                                     .getMasterIndex());
+            lEventDay = -1;
             for (int eventIndex = 0; eventIndex < lEpgEventsSize; eventIndex++) {
                 lEvent = mDTVManager.getEpgControl().getRequestedEvent(
                         mEPGFilterID,
                         ipAndSomeOtherTunerType ? channelIndex + 1
                                 : channelIndex, eventIndex);
+                Log.i(TAG, "Channel Index: " + channelIndex + "\n\tEVENT: "
+                        + lEvent.getName() + "\n\tStart Time: "
+                        + lEvent.getStartTime().toString() + "\n\tEndTime: "
+                        + lEvent.getEndTime().toString());
                 lBeginTime = lEvent.getStartTime().getCalendar().getTime();
                 lEndTime = lEvent.getEndTime().getCalendar().getTime();
                 if (lEventDay == -1) {
@@ -724,7 +729,10 @@ public class DVBManager {
                                 lBeginTime.getMonth(), lBeginTime.getDay(),
                                 lBeginTime.getHours(), 59, 0);
                     }
+                    /** When one Event is in two columns. */
                     if (lBeginTime.getHours() < lEndTime.getHours()) {
+                        /** Cut in half. */
+                        /** First Part of event in first column. */
                         lParsedEndTime = new Date(lBeginTime.getYear(),
                                 lBeginTime.getMonth(), lBeginTime.getDay(),
                                 lBeginTime.getHours(), 59, 0);
@@ -738,6 +746,7 @@ public class DVBManager {
                                         .getParentalRate()),
                                 EPGActivity.getEPGGenre(lEvent.getGenre()),
                                 lEvent);
+                        /** Second Part of event in second column. */
                         lParsedBeginTime = new Date(lEndTime.getYear(),
                                 lEndTime.getMonth(), lEndTime.getDay(),
                                 lEndTime.getHours(), 0, 0);
@@ -752,6 +761,7 @@ public class DVBManager {
                                 EPGActivity.getEPGGenre(lEvent.getGenre()),
                                 lEvent);
                     } else {
+                        /** Event in one hour column. */
                         mTimeEventHolders.get(lBeginTime.getHours()).addEvent(
                                 channelIndex,
                                 lEvent.getName(),
@@ -776,6 +786,22 @@ public class DVBManager {
                     + "/"
                     + lCalendar.get(Calendar.YEAR));
         }
+    }
+
+    /**
+     * Reload EPG events,through thread.
+     */
+    public void reLoadEvents() {
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                try {
+                    loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
+                } catch (ParseException e) {
+                    Log.e(TAG, "There was an error in reloading EPG events.", e);
+                }
+            }
+        }).start();
     }
 
     /**

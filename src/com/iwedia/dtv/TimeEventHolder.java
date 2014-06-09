@@ -58,10 +58,6 @@ public class TimeEventHolder {
         mDuration = lDateDuration.getHours() + ":" + lDateDuration.getMinutes();
     }
 
-    private String getParentalRaiting() {
-        return "";
-    }
-
     public String getEventName() {
         return mEventName;
     }
@@ -86,6 +82,6 @@ public class TimeEventHolder {
                 + mEndTime.getMinutes() + "\n\n Duration: " + mDuration + "\n"
                 + "\n Extended Description: " + mDescription + "\n"
                 + "\n Parental Rating: " + mParentalRaiting + "\n"
-                + "\n Genre: " + mGenre + "\n" + "\n\n\n";
+                + "\n Genre: " + mGenre + "\n";
     }
 }

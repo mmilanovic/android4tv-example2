@@ -18,40 +18,24 @@ public class EPGCallBack implements IEpgCallback {
     @Override
     public void scEventChanged(int arg0, int arg1) {
         Log.d(TAG, "EPG CALLBACK scEventChanged");
-        loadEvents();
+        mDVBManager.reLoadEvents();
     }
 
     @Override
     public void scAcquisitionFinished(int arg0, int arg1) {
         Log.d(TAG, "EPG CALLBACK scAcquisitionFinished");
-        loadEvents();
+        mDVBManager.reLoadEvents();
     }
 
     @Override
     public void pfEventChanged(int arg0, int arg1) {
         Log.d(TAG, "EPG CALLBACK pfEventChanged");
-        loadEvents();
+        mDVBManager.reLoadEvents();
     }
 
     @Override
     public void pfAcquisitionFinished(int arg0, int arg1) {
         Log.d(TAG, "EPG CALLBACK pfAcquisitionFinished");
-        loadEvents();
-    }
-
-    /**
-     * Reload EPG events.
-     */
-    private void loadEvents() {
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mDVBManager.loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
-                } catch (ParseException e) {
-                    Log.e(TAG, "There was an error in reloading EPG events.", e);
-                }
-            }
-        }).start();
+        mDVBManager.reLoadEvents();
     }
 }

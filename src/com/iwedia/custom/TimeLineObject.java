@@ -127,59 +127,65 @@ public class TimeLineObject extends View {
      */
     public void showDialogWithEvents() {
         if (null != mTimeEventHolder && mTimeEventHolder.size() > 0) {
-            View lView = ((LayoutInflater) mContext
+            View lViewDialog = ((LayoutInflater) mContext
                     .getSystemService(Service.LAYOUT_INFLATER_SERVICE))
                     .inflate(R.layout.epg_events_dialog, null);
-            LinearLayout lLinearLayout = (LinearLayout) lView
+            LinearLayout lLinearLayout = (LinearLayout) lViewDialog
                     .findViewById(R.id.linearlayout_events);
-            Button lPvrRecord = (Button) lView
-                    .findViewById(R.id.buttonCreateSmartRecord);
-            Button lReminder = (Button) lView
-                    .findViewById(R.id.buttonCreateReminder);
-            final TimeEventHolder holder = mTimeEventHolder.get(0);
-            TextView lTextView = new TextView(mContext);
-            lTextView.setText(holder.toString());
-            lLinearLayout.addView(lTextView);
-            lPvrRecord.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        DVBManager.getInstance().createSmartRecord(
-                                new SmartCreateParams(holder.getEvent()
-                                        .getServiceIndex(), holder.getEvent()
-                                        .getEventId(), holder.getEvent()
-                                        .getName(), holder.getEvent()
-                                        .getDescription(), holder.getEvent()
-                                        .getStartTime(), holder.getEvent()
-                                        .getEndTime()));
-                    } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
-                    } catch (InternalException e) {
-                        e.printStackTrace();
+            for (int i = 0; i < mTimeEventHolder.size(); i++) {
+                final TimeEventHolder holder = mTimeEventHolder.get(i);
+                View lViewDialogButtons = ((LayoutInflater) mContext
+                        .getSystemService(Service.LAYOUT_INFLATER_SERVICE))
+                        .inflate(R.layout.epg_events_dialog_buttons, null);
+                Button lPvrRecord = (Button) lViewDialogButtons
+                        .findViewById(R.id.buttonCreateSmartRecord);
+                Button lReminder = (Button) lViewDialogButtons
+                        .findViewById(R.id.buttonCreateReminder);
+                TextView lTextView = new TextView(mContext);
+                lTextView.setText(holder.toString());
+                lLinearLayout.addView(lTextView);
+                lLinearLayout.addView(lViewDialogButtons);
+                lPvrRecord.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            DVBManager.getInstance().createSmartRecord(
+                                    new SmartCreateParams(holder.getEvent()
+                                            .getServiceIndex(), holder
+                                            .getEvent().getEventId(), holder
+                                            .getEvent().getName(), holder
+                                            .getEvent().getDescription(),
+                                            holder.getEvent().getStartTime(),
+                                            holder.getEvent().getEndTime()));
+                        } catch (IllegalArgumentException e) {
+                            e.printStackTrace();
+                        } catch (InternalException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            });
-            lReminder.setOnClickListener(new OnClickListener() {
-                @Override
-                public void onClick(View v) {
-                    try {
-                        DVBManager.getInstance().createReminder(
-                                new ReminderSmartParam(holder.getEvent()
-                                        .getName(), holder.getEvent()
-                                        .getDescription(), holder.getEvent()
-                                        .getServiceIndex(), 0, holder
-                                        .getEvent().getEventId(), holder
-                                        .getEvent().getStartTime()));
-                    } catch (IllegalArgumentException e) {
-                        e.printStackTrace();
-                    } catch (InternalException e) {
-                        e.printStackTrace();
+                });
+                lReminder.setOnClickListener(new OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        try {
+                            DVBManager.getInstance().createReminder(
+                                    new ReminderSmartParam(holder.getEvent()
+                                            .getName(), holder.getEvent()
+                                            .getDescription(), holder
+                                            .getEvent().getServiceIndex(), 0,
+                                            holder.getEvent().getEventId(),
+                                            holder.getEvent().getStartTime()));
+                        } catch (IllegalArgumentException e) {
+                            e.printStackTrace();
+                        } catch (InternalException e) {
+                            e.printStackTrace();
+                        }
                     }
-                }
-            });
+                });
+            }
             Dialog lDialog = new Dialog(mContext);
             lDialog.setTitle(mChannelName);
-            lDialog.setContentView(lView);
+            lDialog.setContentView(lViewDialog);
             lDialog.show();
         }
     }

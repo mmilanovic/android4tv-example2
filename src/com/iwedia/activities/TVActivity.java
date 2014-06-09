@@ -84,7 +84,7 @@ public class TVActivity extends DTVActivity {
         mBufferedChannelIndex = new StringBuilder();
         /** Initialize dialogs. */
         initializeDialogs();
-        /** Register callbacks */
+        /** Register callbacks. */
         mDVBManager.registerPvrCallback(PvrCallback.getInstance(this));
         mDVBManager
                 .registerReminderCallback(ReminderCallback.getInstance(this));

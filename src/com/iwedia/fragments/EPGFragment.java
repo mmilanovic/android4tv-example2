@@ -150,21 +150,9 @@ public class EPGFragment extends Fragment implements OnItemSelectedListener,
     @Override
     public boolean onItemLongClick(AdapterView<?> parent, View view,
             int position, long id) {
-        Log.d(TAG, "\n\n\n\n\nLONG CLICK HAPPENED");
         if (!mNotifyFragments.showAlertDialog()) {
-            Log.d(TAG, "LONG CLICK HAPPENED1");
             ((EPGActivity) getActivity()).getProgressDialog().show();
-            new Thread(new Runnable() {
-                @Override
-                public void run() {
-                    try {
-                        ((EPGActivity) getActivity()).getDVBManager()
-                                .loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
-                    } catch (ParseException e) {
-                        Log.e(TAG, "Error in date parsing.", e);
-                    }
-                }
-            }).start();
+            ((EPGActivity) getActivity()).getDVBManager().reLoadEvents();
         }
         return true;
     }

@@ -63,24 +63,7 @@ public class EPGActivity extends DTVActivity {
         mProgressDialog = new ProgressDialog(this);
         mProgressDialog.setTitle(R.string.progress_info);
         /** Load EPG events initially */
-        loadEvents();
-    }
-
-    /**
-     * Load EPG events
-     */
-    private void loadEvents() {
-        mProgressDialog.show();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mDVBManager.loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        mDVBManager.reLoadEvents();
     }
 
     @Override
@@ -208,16 +191,7 @@ public class EPGActivity extends DTVActivity {
                 return super.onOptionsItemSelected(item);
         }
         mProgressDialog.show();
-        new Thread(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    mDVBManager.loadEvents(DVBManager.LOAD_EPG_CURRENT_DAY);
-                } catch (ParseException e) {
-                    e.printStackTrace();
-                }
-            }
-        }).start();
+        mDVBManager.reLoadEvents();
         return true;
     }
 
