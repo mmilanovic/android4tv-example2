@@ -618,10 +618,6 @@ public class DVBManager {
 
     public void setGenreFilter(EpgEventGenre genre) {
         mGenre = genre;
-        EpgGenreFilter genreFilter = new EpgGenreFilter();
-        EnumSet<EpgEventGenre> set = EnumSet.of(genre);
-        genreFilter.setGenre(set);
-        mDTVManager.getEpgControl().setFilter(mEPGFilterID, genreFilter);
     }
 
     /**
@@ -695,6 +691,12 @@ public class DVBManager {
             /** Set Service Filter. */
             mDTVManager.getEpgControl().setFilter(mEPGFilterID,
                     lEpgServiceFilter);
+            /** Create Genre Filter. */
+            EpgGenreFilter genreFilter = new EpgGenreFilter();
+            EnumSet<EpgEventGenre> set = EnumSet.of(mGenre);
+            genreFilter.setGenre(set);
+            /** Set Genre Filter. */
+            mDTVManager.getEpgControl().setFilter(mEPGFilterID, genreFilter);
             /** Reset Filter */
             mDTVManager.getEpgControl().startAcquisition(mEPGFilterID);
             lEpgEventsSize = mDTVManager
