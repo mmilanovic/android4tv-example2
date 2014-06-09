@@ -80,9 +80,9 @@ public class TimeLineObject extends View {
                 }
                 int lBeginMinutes = timeHolder.getBeginTime().getMinutes() == 0 ? 1
                         : timeHolder.getBeginTime().getMinutes();
-                int lEndMinutes = (lHours * 60)
-                        + timeHolder.getEndTime().getMinutes() == 0 ? 1
-                        : timeHolder.getEndTime().getMinutes();
+                int lEndMinutes = ((lHours * 59) + timeHolder.getEndTime()
+                        .getMinutes()) == 0 ? 1 : (lHours * 59)
+                        + timeHolder.getEndTime().getMinutes();
                 float lXBeginPosition = lBeginMinutes * canvas.getWidth() / 59;
                 float lXEndPosition = lEndMinutes * canvas.getWidth() / 59;
                 canvas.drawRect(lXBeginPosition, 0, lXEndPosition,

@@ -636,10 +636,10 @@ public class DVBManager {
      */
     public void loadEvents(int day) throws ParseException {
         loadInProgress = true;
-        Date lBeginTime = null;
-        Date lEndTime = null;
-        Date lParsedBeginTime = null;
-        Date lParsedEndTime = null;
+        Date lDrawingBeginTime = null;
+        Date lDrawingEndTime = null;
+        Date lDrawingParsedBeginTime = null;
+        Date lDrawingParsedEndTime = null;
         EpgEvent lEvent = null;
         int lEpgEventsSize = 0;
         int lEventDay = -1;
@@ -683,7 +683,7 @@ public class DVBManager {
         lEpgTimeFilter.setTime(lEpgStartTime, lEpgEndTime);
         /** Make filter list by time. */
         mDTVManager.getEpgControl().setFilter(mEPGFilterID, lEpgTimeFilter);
-        /** Remove IP Channels, there are not currently EPG for that type. */
+        /** Remove IP Channels, there is not EPG for that type. */
         int count = getChannelListSize()
                 - (mLiveRouteIp == -1 ? 0 : DTVActivity.sIpChannels.size());
         for (int channelIndex = 0; channelIndex < count; channelIndex++) {
@@ -714,64 +714,76 @@ public class DVBManager {
                         mEPGFilterID,
                         ipAndSomeOtherTunerType ? channelIndex + 1
                                 : channelIndex, eventIndex);
-                Log.i(TAG, "Channel Index: " + channelIndex + "\n\tEVENT: "
-                        + lEvent.getName() + "\n\tStart Time: "
-                        + lEvent.getStartTime().toString() + "\n\tEndTime: "
-                        + lEvent.getEndTime().toString());
-                lBeginTime = lEvent.getStartTime().getCalendar().getTime();
-                lEndTime = lEvent.getEndTime().getCalendar().getTime();
+                lDrawingBeginTime = lEvent.getStartTime().getCalendar()
+                        .getTime();
+                lDrawingEndTime = lEvent.getEndTime().getCalendar().getTime();
                 if (lEventDay == -1) {
-                    lEventDay = lBeginTime.getDay();
+                    lEventDay = lDrawingBeginTime.getDay();
                 }
-                if (lBeginTime.getDay() == lEventDay) {
-                    if (lEndTime.getDay() != lEventDay) {
-                        lEndTime = new Date(lBeginTime.getYear(),
-                                lBeginTime.getMonth(), lBeginTime.getDay(),
-                                lBeginTime.getHours(), 59, 0);
+                if (lDrawingBeginTime.getDay() == lEventDay) {
+                    if (lDrawingEndTime.getDay() != lEventDay) {
+                        lDrawingEndTime = new Date(lDrawingBeginTime.getYear(),
+                                lDrawingBeginTime.getMonth(),
+                                lDrawingBeginTime.getDay(),
+                                lDrawingBeginTime.getHours(), 59, 0);
                     }
-                    /** When one Event is in two columns. */
-                    if (lBeginTime.getHours() < lEndTime.getHours()) {
-                        /** Cut in half. */
-                        /** First Part of event in first column. */
-                        lParsedEndTime = new Date(lBeginTime.getYear(),
-                                lBeginTime.getMonth(), lBeginTime.getDay(),
-                                lBeginTime.getHours(), 59, 0);
-                        mTimeEventHolders.get(lBeginTime.getHours()).addEvent(
-                                channelIndex,
-                                lEvent.getName(),
-                                lBeginTime,
-                                lParsedEndTime,
-                                lEvent.getDescription(),
-                                EPGActivity.getParentalRating(lEvent
-                                        .getParentalRate()),
-                                EPGActivity.getEPGGenre(lEvent.getGenre()),
-                                lEvent);
-                        /** Second Part of event in second column. */
-                        lParsedBeginTime = new Date(lEndTime.getYear(),
-                                lEndTime.getMonth(), lEndTime.getDay(),
-                                lEndTime.getHours(), 0, 0);
-                        mTimeEventHolders.get(lEndTime.getHours()).addEvent(
-                                channelIndex,
-                                lEvent.getName(),
-                                lParsedBeginTime,
-                                lEndTime,
-                                lEvent.getDescription(),
-                                EPGActivity.getParentalRating(lEvent
-                                        .getParentalRate()),
-                                EPGActivity.getEPGGenre(lEvent.getGenre()),
-                                lEvent);
+                    /** When duration of Event is a few hours.. */
+                    if (lDrawingBeginTime.getHours() < lDrawingEndTime
+                            .getHours()) {
+                        for (int i = 0; i <= lDrawingEndTime.getHours()
+                                - lDrawingBeginTime.getHours(); i++) {
+                            /** If Event is longer than 1h. */
+                            /** Draw from 'lDrawingBeginTime' to next hour. */
+                            if (i == 0) {
+                                lDrawingParsedBeginTime = lDrawingBeginTime;
+                                lDrawingParsedEndTime = new Date(
+                                        lDrawingBeginTime.getYear(),
+                                        lDrawingBeginTime.getMonth(),
+                                        lDrawingBeginTime.getDay(),
+                                        lDrawingBeginTime.getHours() + 1, 0, 0);
+                            }
+                            /**
+                             * Check is there need to draw end hour, if yes draw
+                             * it from 'lDrawingEndTime.getHour():00' to
+                             * 'lDrawingEndTime.getHour():lDrawingEndTime.getMin
+                             * u t e s ( ) ' .
+                             */
+                            else if (i == lDrawingEndTime.getHours()
+                                    - lDrawingBeginTime.getHours()) {
+                                if (lDrawingEndTime.getMinutes() > 0) {
+                                    lDrawingParsedBeginTime = new Date(
+                                            lDrawingEndTime.getYear(),
+                                            lDrawingEndTime.getMonth(),
+                                            lDrawingEndTime.getDay(),
+                                            lDrawingEndTime.getHours(), 0, 0);
+                                    lDrawingParsedEndTime = lDrawingEndTime;
+                                }
+                            }
+                            /** Draw other. */
+                            else {
+                                lDrawingParsedBeginTime = new Date(
+                                        lDrawingBeginTime.getYear(),
+                                        lDrawingBeginTime.getMonth(),
+                                        lDrawingBeginTime.getDay(),
+                                        lDrawingBeginTime.getHours() + i, 0, 0);
+                                lDrawingParsedEndTime = new Date(
+                                        lDrawingBeginTime.getYear(),
+                                        lDrawingBeginTime.getMonth(),
+                                        lDrawingBeginTime.getDay(),
+                                        lDrawingBeginTime.getHours() + 1 + i,
+                                        0, 0);
+                            }
+                            mTimeEventHolders.get(
+                                    lDrawingParsedBeginTime.getHours())
+                                    .addEvent(channelIndex,
+                                            lDrawingParsedBeginTime,
+                                            lDrawingParsedEndTime, lEvent);
+                        }
                     } else {
                         /** Event in one hour column. */
-                        mTimeEventHolders.get(lBeginTime.getHours()).addEvent(
-                                channelIndex,
-                                lEvent.getName(),
-                                lBeginTime,
-                                lEndTime,
-                                lEvent.getDescription(),
-                                EPGActivity.getParentalRating(lEvent
-                                        .getParentalRate()),
-                                EPGActivity.getEPGGenre(lEvent.getGenre()),
-                                lEvent);
+                        mTimeEventHolders.get(lDrawingBeginTime.getHours())
+                                .addEvent(channelIndex, lDrawingBeginTime,
+                                        lDrawingEndTime, lEvent);
                     }
                 }
             }

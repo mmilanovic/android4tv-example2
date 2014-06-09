@@ -10,6 +10,7 @@
  */
 package com.iwedia.dtv;
 
+import com.iwedia.activities.EPGActivity;
 import com.iwedia.dtv.epg.EpgEvent;
 
 import java.util.Date;
@@ -18,13 +19,9 @@ import java.util.Date;
  * TimeEventHolder keeps important information about an event.
  */
 public class TimeEventHolder {
-    private String mEventName = "";
-    private Date mBeginTime = null;
-    private Date mEndTime = null;
+    private Date mDrawingBeginTime = null;
+    private Date mDrawingEndTime = null;
     private String mDuration = "";
-    private String mDescription = "";
-    private String mParentalRaiting = "";
-    private String mGenre = "";
     private EpgEvent mEvent;
 
     /**
@@ -37,37 +34,32 @@ public class TimeEventHolder {
      * @param endTime
      *        Time when event ends.
      */
-    public TimeEventHolder(String eventName, Date beginTime, Date endTime,
-            String description, String parentalRaiting, String genre,
+    public TimeEventHolder(Date drawingBeginTime, Date drawingEndTime,
             EpgEvent event) {
-        mEventName = eventName;
-        mBeginTime = beginTime;
-        mEndTime = endTime;
-        mDescription = description;
-        mParentalRaiting = parentalRaiting;
-        mGenre = genre;
+        mDrawingBeginTime = drawingBeginTime;
+        mDrawingEndTime = drawingEndTime;
         mEvent = event;
         calculateDuration();
     }
 
     private void calculateDuration() {
-        long lBeginTime = mBeginTime.getTime();
-        long lEndTime = mEndTime.getTime();
+        long lBeginTime = mEvent.getStartTime().getCalendar().getTimeInMillis();
+        long lEndTime = mEvent.getEndTime().getCalendar().getTimeInMillis();
         long lDuration = lEndTime - lBeginTime;
         Date lDateDuration = new Date(lDuration);
         mDuration = lDateDuration.getHours() + ":" + lDateDuration.getMinutes();
     }
 
     public String getEventName() {
-        return mEventName;
+        return mEvent.getName();
     }
 
     public Date getBeginTime() {
-        return mBeginTime;
+        return mDrawingBeginTime;
     }
 
     public Date getEndTime() {
-        return mEndTime;
+        return mDrawingEndTime;
     }
 
     public EpgEvent getEvent() {
@@ -76,12 +68,15 @@ public class TimeEventHolder {
 
     @Override
     public String toString() {
-        return "EventName: " + mEventName + "\n\n StartTime: "
-                + mBeginTime.getHours() + ":" + mBeginTime.getMinutes()
-                + "\n\n EndTime: " + mEndTime.getHours() + ":"
-                + mEndTime.getMinutes() + "\n\n Duration: " + mDuration + "\n"
-                + "\n Extended Description: " + mDescription + "\n"
-                + "\n Parental Rating: " + mParentalRaiting + "\n"
-                + "\n Genre: " + mGenre + "\n";
+        return "EventName: " + getEventName() + "\n\n StartTime: "
+                + mEvent.getStartTime().getHour() + ":"
+                + mEvent.getStartTime().getMin() + "\n\n EndTime: "
+                + mEvent.getEndTime().getHour() + ":"
+                + mEvent.getEndTime().getMin() + "\n\n Duration: " + mDuration
+                + "\n" + "\n Extended Description: " + mEvent.getDescription()
+                + "\n" + "\n Parental Rating: "
+                + EPGActivity.getParentalRating(mEvent.getParentalRate())
+                + "\n" + "\n Genre: "
+                + EPGActivity.getEPGGenre(mEvent.getGenre()) + "\n";
     }
 }
