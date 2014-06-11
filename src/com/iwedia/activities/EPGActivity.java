@@ -12,10 +12,14 @@ package com.iwedia.activities;
 
 import android.app.ProgressDialog;
 import android.os.Bundle;
+import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
+import android.view.View;
 import android.widget.ListView;
+import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 
 import com.iwedia.adapters.FragmentTabAdapter;
 import com.iwedia.adapters.ListViewChannelsAdapter;
@@ -29,7 +33,7 @@ import java.text.ParseException;
 /**
  * EPGActivity - Show current EPG events of all channels for 24h.
  */
-public class EPGActivity extends DTVActivity {
+public class EPGActivity extends DTVActivity implements OnMenuItemClickListener {
     private final String TAG = "ActivityEPG";
     public static final String FRAGMRENT_ARGUMENT_KEY_TIME = "time";
     public static final int HOURS = 24;
@@ -37,6 +41,7 @@ public class EPGActivity extends DTVActivity {
     private FragmentTabAdapter mAdapterActivityEPGFragmentTab = null;
     private ListViewChannelsAdapter mAdapterActivityEPGListViewChannels = null;
     private ProgressDialog mProgressDialog;
+    private PopupMenu mPopup;
     private OnLoadFinishedListener mOnLoadFinishedListener = new OnLoadFinishedListener() {
         @Override
         public void onLoadFinished(String date) {
@@ -66,75 +71,82 @@ public class EPGActivity extends DTVActivity {
         mDVBManager.reLoadEvents();
     }
 
-    @Override
-    public boolean onCreateOptionsMenu(Menu menu) {
-        MenuInflater inflater = getMenuInflater();
-        inflater.inflate(R.menu.epg_genre, menu);
-        return true;
-    }
-
-    @Override
-    public boolean onPrepareOptionsMenu(Menu menu) {
+    /** Listener for menu button click */
+    public void onClickMenu(View v) {
+        // openOptionsMenu();
+        if (v == null) {
+            v = findViewById(R.id.textview_date);
+        }
+        // create popup menu
+        if (mPopup == null) {
+            mPopup = new PopupMenu(this, v);
+            mPopup.setOnMenuItemClickListener(this);
+            MenuInflater inflater = mPopup.getMenuInflater();
+            inflater.inflate(R.menu.epg_genre, mPopup.getMenu());
+        }
+        /**
+         * Set active genre state.
+         */
         /** ALL */
-        MenuItem checkable = menu.findItem(R.id.menu_genre_all);
+        MenuItem checkable = mPopup.getMenu().findItem(R.id.menu_genre_all);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.GENRE_ALL ? true
                         : false);
         /** CHILDREN */
-        checkable = menu.findItem(R.id.menu_genre_children);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_children);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.CHILDREN_YOUTH_PROGRAMMES ? true
                         : false);
         /** CULTURE */
-        checkable = menu.findItem(R.id.menu_genre_culture);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_culture);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.ARTS_CULTURE ? true
                         : false);
         /** HOBBIES */
-        checkable = menu.findItem(R.id.menu_genre_hobbies);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_hobbies);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.LEISURE_HOBBIES ? true
                         : false);
         /** MOVIES */
-        checkable = menu.findItem(R.id.menu_genre_movie);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_movie);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.MOVIE_DRAMA ? true
                         : false);
         /** MUSIC */
-        checkable = menu.findItem(R.id.menu_genre_music);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_music);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.MUSIC_BALLET_DANCE ? true
                         : false);
         /** NEWS */
-        checkable = menu.findItem(R.id.menu_genre_news);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_news);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.NEWS_CURRENT_AFFAIRS ? true
                         : false);
         /** POLITIC */
-        checkable = menu.findItem(R.id.menu_genre_politic);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_politic);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.SOCIAL_POLITICAL_ISSUES_ECONOMICS ? true
                         : false);
         /** SCIENCE */
-        checkable = menu.findItem(R.id.menu_genre_science);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_science);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.EDUCATION_SCIENCE_FACTUAL_TOPICS ? true
                         : false);
         /** SHOW */
-        checkable = menu.findItem(R.id.menu_genre_show);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_show);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.SHOW_GAME_SHOW ? true
                         : false);
         /** SPORTS */
-        checkable = menu.findItem(R.id.menu_genre_sports);
+        checkable = mPopup.getMenu().findItem(R.id.menu_genre_sports);
         checkable
                 .setChecked(mDVBManager.getActiveGenre() == EpgEventGenre.SPORTS ? true
                         : false);
-        return true;
+        mPopup.show();
     }
 
     @Override
-    public boolean onOptionsItemSelected(MenuItem item) {
+    public boolean onMenuItemClick(final MenuItem item) {
         /** Handle item selection. */
         if (!item.isChecked()) {
             item.setChecked(true);
@@ -234,6 +246,15 @@ public class EPGActivity extends DTVActivity {
         }
         return lStringId == -1 ? "" : sInstance.getApplicationContext()
                 .getString(lStringId);
+    }
+
+    @Override
+    public boolean onKeyUp(int keyCode, KeyEvent event) {
+        if (keyCode == KeyEvent.KEYCODE_MENU) {
+            onClickMenu(null);
+            return true;
+        }
+        return super.onKeyUp(keyCode, event);
     }
 
     /**
