@@ -90,7 +90,7 @@ public class TVActivity extends DTVActivity {
                 .registerReminderCallback(ReminderCallback.getInstance(this));
         /** Start DTV. */
         try {
-            mChannelInfo = mDVBManager.startDTV(0);
+            mChannelInfo = mDVBManager.changeChannelByNumber(0);
         } catch (IllegalArgumentException e) {
             Toast.makeText(this, "Cant play service with index: " + 0,
                     Toast.LENGTH_SHORT).show();
