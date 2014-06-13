@@ -44,4 +44,8 @@
     <string name="reminder_created">Reminder created!</string>
     <string name="manual_pvr">Manual record</string>
     <string name="manual_reminder">Manual reminder</string>
+    <string name="start_time">Start time:</string>
+    <string name="end_time">End time:</string>
+    <string name="time_neutral">--:--</string>
+    <string name="create">Create</string>
 </resources>
