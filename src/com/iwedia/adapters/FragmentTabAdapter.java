@@ -74,7 +74,7 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
     private void initializeEPGAlertDialog() {
         AlertDialog.Builder lEPGDayAlertBuilder = new AlertDialog.Builder(
                 mActivity);
-        lEPGDayAlertBuilder.setPositiveButton(R.string.yes,
+        lEPGDayAlertBuilder.setNegativeButton(R.string.yes,
                 new OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
@@ -99,7 +99,7 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
                         }).start();
                     }
                 });
-        lEPGDayAlertBuilder.setNegativeButton(R.string.no,
+        lEPGDayAlertBuilder.setPositiveButton(R.string.no,
                 new OnClickListener() {
                     @Override
                     public void onClick(DialogInterface dialog, int which) {
