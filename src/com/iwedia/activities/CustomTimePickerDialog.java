@@ -99,9 +99,9 @@ public class CustomTimePickerDialog extends AlertDialog implements
         down.addView(hourDown);
         down.addView(minuteDown);
         // initialize state
+        mTimePicker.setIs24HourView(mIs24HourView);
         mTimePicker.setCurrentHour(mInitialHourOfDay);
         mTimePicker.setCurrentMinute(mInitialMinute);
-        mTimePicker.setIs24HourView(mIs24HourView);
         setView(container);
         // set button
         setButton(BUTTON_POSITIVE, "Set", this);

@@ -30,12 +30,10 @@ public class EPGCallBack implements IEpgCallback {
     @Override
     public void pfEventChanged(int arg0, int arg1) {
         Log.d(TAG, "EPG CALLBACK pfEventChanged");
-        mDVBManager.reLoadEvents();
     }
 
     @Override
     public void pfAcquisitionFinished(int arg0, int arg1) {
         Log.d(TAG, "EPG CALLBACK pfAcquisitionFinished");
-        mDVBManager.reLoadEvents();
     }
 }

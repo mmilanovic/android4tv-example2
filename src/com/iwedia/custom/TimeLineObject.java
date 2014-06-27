@@ -19,6 +19,7 @@ import android.graphics.Paint;
 import android.graphics.Paint.Style;
 import android.graphics.Path;
 import android.util.AttributeSet;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.Button;
@@ -157,10 +158,16 @@ public class TimeLineObject extends View {
                                             .getEvent().getDescription(),
                                             holder.getEvent().getStartTime(),
                                             holder.getEvent().getEndTime()));
+                            Toast.makeText(mContext,
+                                    R.string.smart_record_created,
+                                    Toast.LENGTH_SHORT).show();
                         } catch (IllegalArgumentException e) {
                             e.printStackTrace();
                         } catch (InternalException e) {
                             e.printStackTrace();
+                            Toast.makeText(mContext,
+                                    R.string.create_record_failed,
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 });
@@ -168,6 +175,17 @@ public class TimeLineObject extends View {
                     @Override
                     public void onClick(View v) {
                         try {
+                            Log.d(TAG, "EVENT NAME: "
+                                    + holder.getEvent().getName());
+                            Log.d(TAG, "EVENT DESCRIPTION: "
+                                    + holder.getEvent().getDescription());
+                            Log.d(TAG, "EVENT SERVICE INDEX: "
+                                    + holder.getEvent().getServiceIndex());
+                            Log.d(TAG, "EVENT ID: "
+                                    + holder.getEvent().getEventId());
+                            Log.d(TAG, "EVENT START TIME: "
+                                    + holder.getEvent().getStartTime()
+                                            .toString());
                             DVBManager.getInstance().createReminder(
                                     new ReminderSmartParam(holder.getEvent()
                                             .getName(), holder.getEvent()
@@ -175,10 +193,15 @@ public class TimeLineObject extends View {
                                             .getEvent().getServiceIndex(), 0,
                                             holder.getEvent().getEventId(),
                                             holder.getEvent().getStartTime()));
+                            Toast.makeText(mContext, R.string.reminder_created,
+                                    Toast.LENGTH_SHORT).show();
                         } catch (IllegalArgumentException e) {
                             e.printStackTrace();
                         } catch (InternalException e) {
                             e.printStackTrace();
+                            Toast.makeText(mContext,
+                                    R.string.create_reminder_failed,
+                                    Toast.LENGTH_SHORT).show();
                         }
                     }
                 });

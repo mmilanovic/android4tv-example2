@@ -26,10 +26,16 @@
         android:layout_width="0dp"
         android:layout_height="wrap_content"
         android:layout_weight="1" >
+        <TextView
+            android:id="@+id/textViewTimeFromStream"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge" />
         <ListView
             android:id="@+id/listViewChannels"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:layout_below="@+id/textViewTimeFromStream"
             android:layout_marginTop="20dp"
             android:choiceMode="singleChoice" >
         </ListView>

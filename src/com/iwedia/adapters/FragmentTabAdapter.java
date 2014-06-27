@@ -25,6 +25,7 @@ import android.widget.TextView;
 
 import com.iwedia.activities.EPGActivity;
 import com.iwedia.dtv.DVBManager;
+import com.iwedia.dtv.types.TimeDate;
 import com.iwedia.epg.R;
 import com.iwedia.fragments.EPGFragment;
 import com.iwedia.fragments.EPGFragment.NotifyFragments;
@@ -38,6 +39,7 @@ import java.util.ArrayList;
  */
 public class FragmentTabAdapter extends FragmentPagerAdapter implements
         ViewPager.OnPageChangeListener {
+    private static final int MESSAGE_REFRESH_TIME = 4;
     private final String TAG = "FragmentTabAdapter";
     private EPGActivity mActivity = null;
     private ViewPager mViewPager = null;
@@ -48,6 +50,7 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
     private AlertDialog mEPGDayAlertDialog = null;
     /** TextView for Date. */
     private TextView mTextViewDate = null;
+    private Thread mTimerThread;
 
     public FragmentTabAdapter(EPGActivity activity) {
         super(activity.getSupportFragmentManager());
@@ -59,16 +62,36 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
         mTextViewDate = (TextView) activity.findViewById(R.id.textview_date);
         mHandler = new Handler() {
             public void handleMessage(android.os.Message msg) {
-                mTextViewDate.setText((String) msg.obj);
-                try {
-                    notifyAllAdapters();
-                } catch (RemoteException e) {
-                    Log.e(TAG, "Error with service connection.", e);
+                if (msg.what == MESSAGE_REFRESH_TIME) {
+                    try {
+                        if (!mTextViewDate.isShown()) {
+                            stopThread();
+                            return;
+                        }
+                        TimeDate timeFromStream = DVBManager.getInstance()
+                                .getCurrentTime();
+                        StringBuilder builder = new StringBuilder();
+                        mTextViewDate.setText(builder
+                                .append(timeFromStream.getDay()).append("/")
+                                .append(timeFromStream.getMonth()).append("/")
+                                .append(timeFromStream.getYear()).append(" ")
+                                .append(timeFromStream.getHour()).append(":")
+                                .append(timeFromStream.getMin()).toString());
+                    } catch (Exception e) {
+                    }
+                } else {
+                    mTextViewDate.setText((String) msg.obj);
+                    try {
+                        notifyAllAdapters();
+                    } catch (RemoteException e) {
+                        Log.e(TAG, "Error with service connection.", e);
+                    }
+                    mActivity.getProgressDialog().cancel();
                 }
-                mActivity.getProgressDialog().cancel();
             };
         };
         initializeEPGAlertDialog();
+        startThread();
     }
 
     private void initializeEPGAlertDialog() {
@@ -202,5 +225,40 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
      */
     public void notifyAdapters(String date) {
         Message.obtain(mHandler, 0, date).sendToTarget();
+    }
+
+    /**
+     * Starts background thread.
+     */
+    private synchronized void startThread() {
+        stopThread();
+        mTimerThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Thread thisThread = Thread.currentThread();
+                while (true) {
+                    if (thisThread == mTimerThread) {
+                        mHandler.sendEmptyMessage(MESSAGE_REFRESH_TIME);
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+        });
+        mTimerThread.setPriority(Thread.MIN_PRIORITY);
+        mTimerThread.start();
+    }
+
+    /**
+     * Stops background thread.
+     */
+    private synchronized void stopThread() {
+        if (mTimerThread != null) {
+            Thread moribund = mTimerThread;
+            mTimerThread = null;
+            moribund.interrupt();
+        }
     }
 }

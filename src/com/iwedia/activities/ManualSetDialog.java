@@ -14,12 +14,15 @@ import android.app.Dialog;
 import android.app.TimePickerDialog.OnTimeSetListener;
 import android.content.Context;
 import android.graphics.PixelFormat;
+import android.os.Handler;
+import android.os.Message;
 import android.view.View;
 import android.view.Window;
 import android.view.WindowManager;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
 import android.widget.ListView;
+import android.widget.TextView;
 import android.widget.TimePicker;
 
 import com.iwedia.dtv.DVBManager;
@@ -34,10 +37,37 @@ import java.util.ArrayList;
  */
 public abstract class ManualSetDialog extends Dialog implements
         android.view.View.OnClickListener {
+    private static final int MESSAGE_REFRESH_TIME = 0;
     protected ListView mListViewChannels;
+    protected TextView mTimeFromStream;
     protected Button mButtonStartTime, mButtonEndTime, mButtonCreate;
     private Context mContext;
     protected TimeDate mStartTime, mEndTime;
+    private Thread mTimerThread;
+    /** CallBack Handler */
+    private Handler mHandler = new Handler() {
+        @Override
+        public void handleMessage(Message msg) {
+            switch (msg.what) {
+                case MESSAGE_REFRESH_TIME: {
+                    try {
+                        TimeDate timeFromStream = DVBManager.getInstance()
+                                .getCurrentTime();
+                        StringBuilder builder = new StringBuilder();
+                        mTimeFromStream.setText(builder
+                                .append(timeFromStream.getHour()).append(":")
+                                .append(timeFromStream.getMin()).append(":")
+                                .append(timeFromStream.getSec()).toString());
+                    } catch (InternalException e) {
+                        e.printStackTrace();
+                    }
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
+    };
 
     public ManualSetDialog(Context context, int width, int height) {
         super(context, R.style.DialogTransparent);
@@ -62,6 +92,7 @@ public abstract class ManualSetDialog extends Dialog implements
      * Initialize views.
      */
     private void init() {
+        mTimeFromStream = (TextView) findViewById(R.id.textViewTimeFromStream);
         mListViewChannels = (ListView) findViewById(R.id.listViewChannels);
         mButtonStartTime = (Button) findViewById(R.id.buttonStartTime);
         mButtonEndTime = (Button) findViewById(R.id.buttonEndTime);
@@ -99,6 +130,7 @@ public abstract class ManualSetDialog extends Dialog implements
         }
         mButtonStartTime.setText("--:--");
         mButtonEndTime.setText("--:--");
+        startThread();
         super.show();
     }
 
@@ -106,6 +138,7 @@ public abstract class ManualSetDialog extends Dialog implements
     public void onBackPressed() {
         mStartTime = null;
         mEndTime = null;
+        stopThread();
         super.onBackPressed();
     }
 
@@ -180,6 +213,41 @@ public abstract class ManualSetDialog extends Dialog implements
             }
         } catch (InternalException e) {
             e.printStackTrace();
+        }
+    }
+
+    /**
+     * Starts background thread.
+     */
+    private synchronized void startThread() {
+        stopThread();
+        mTimerThread = new Thread(new Runnable() {
+            @Override
+            public void run() {
+                Thread thisThread = Thread.currentThread();
+                while (true) {
+                    if (thisThread == mTimerThread) {
+                        mHandler.sendEmptyMessage(MESSAGE_REFRESH_TIME);
+                    }
+                    try {
+                        Thread.sleep(1000);
+                    } catch (InterruptedException e) {
+                    }
+                }
+            }
+        });
+        mTimerThread.setPriority(Thread.MIN_PRIORITY);
+        mTimerThread.start();
+    }
+
+    /**
+     * Stops background thread.
+     */
+    private synchronized void stopThread() {
+        if (mTimerThread != null) {
+            Thread moribund = mTimerThread;
+            mTimerThread = null;
+            moribund.interrupt();
         }
     }
 }
