@@ -11,18 +11,23 @@
 package com.iwedia.activities;
 
 import android.content.Context;
+import android.widget.Toast;
 
 import com.iwedia.dtv.DVBManager;
 import com.iwedia.dtv.reminder.ReminderTimerParam;
 import com.iwedia.dtv.types.InternalException;
 import com.iwedia.dtv.types.TimerRepeatMode;
+import com.iwedia.epg.R;
 
 /**
  * Dialog for creating manual reminders.
  */
 public class ManualReminderDialog extends ManualSetDialog {
+    private Context mContext;
+
     public ManualReminderDialog(Context context, int width, int height) {
         super(context, width, height);
+        mContext = context;
         mButtonEndTime.setEnabled(false);
     }
 
@@ -36,11 +41,15 @@ public class ManualReminderDialog extends ManualSetDialog {
                                         .isIpAndSomeOtherTunerType() ? 1 : 0),
                         TimerRepeatMode.ONCE, mStartTime);
                 DVBManager.getInstance().createReminderManual(param);
+                Toast.makeText(mContext, R.string.reminder_created,
+                        Toast.LENGTH_SHORT).show();
                 return true;
             } catch (IllegalArgumentException e) {
                 e.printStackTrace();
             } catch (InternalException e) {
                 e.printStackTrace();
+                Toast.makeText(mContext, R.string.create_reminder_failed,
+                        Toast.LENGTH_SHORT).show();
             }
         }
         return false;

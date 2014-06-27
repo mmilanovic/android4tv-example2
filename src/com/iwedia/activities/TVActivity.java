@@ -24,16 +24,15 @@ import android.os.Message;
 import android.util.Log;
 import android.view.Display;
 import android.view.KeyEvent;
-import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.PopupMenu;
+import android.widget.PopupMenu.OnMenuItemClickListener;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
-import android.widget.PopupMenu.OnMenuItemClickListener;
 
 import com.iwedia.callback.PvrCallback;
 import com.iwedia.callback.ReminderCallback;
@@ -42,12 +41,15 @@ import com.iwedia.dtv.IPService;
 import com.iwedia.dtv.types.InternalException;
 import com.iwedia.epg.R;
 
+import java.io.File;
+import java.io.FilenameFilter;
 import java.util.ArrayList;
 
 /**
  * TVActivity - Activity for Watching Channels.
  */
-public class TVActivity extends DTVActivity implements OnMenuItemClickListener {
+public class TVActivity extends DTVActivity implements OnMenuItemClickListener,
+        MediaMountedReceiver.MediaCallback {
     public static final String TAG = "TVActivity";
     /** Channel Number/Name View Duration in Milliseconds. */
     private static final int CHANNEL_VIEW_DURATION = 3000;
@@ -70,6 +72,8 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener {
     private ManualReminderDialog mReminderDialog;
     private ManualPvrRecordDialog mPvrRecordDialog;
     private PopupMenu mPopup;
+    private ScheduledRecordListDialog mRecordsDialog;
+    private ReminderListDialog mReminderListDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -88,9 +92,11 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener {
         /** Initialize dialogs. */
         initializeDialogs();
         /** Register callbacks. */
-        mDVBManager.registerPvrCallback(PvrCallback.getInstance(this));
-        mDVBManager
-                .registerReminderCallback(ReminderCallback.getInstance(this));
+        mDVBManager.getPvrManager().registerPvrCallback(
+                PvrCallback.getInstance(this));
+        mDVBManager.getReminderManager().registerCallback(
+                ReminderCallback.getInstance(this));
+        MediaMountedReceiver.getInstance().setMediaCallback(this);
         /** Start DTV. */
         try {
             mChannelInfo = mDVBManager.changeChannelByNumber(0);
@@ -101,6 +107,8 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener {
             /** Error with service connection. */
             finishActivity();
         }
+        /** Check for inserted external media. */
+        getExternalMedia();
     }
 
     /** Listener for menu button click */
@@ -142,8 +150,48 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener {
                 mReminderDialog.show();
                 return true;
             }
+            case R.id.menu_scheduled_records: {
+                if (mRecordsDialog == null) {
+                    mRecordsDialog = new ScheduledRecordListDialog(this);
+                }
+                mRecordsDialog.show();
+                return true;
+            }
+            case R.id.menu_reminders: {
+                if (mReminderListDialog == null) {
+                    mReminderListDialog = new ReminderListDialog(this);
+                }
+                mReminderListDialog.show();
+                return true;
+            }
+            case R.id.menu_version: {
+                Display display = getWindowManager().getDefaultDisplay();
+                Point size = new Point();
+                display.getSize(size);
+                new SoftwareVersionDialog(this, size.x, size.y).show();
+                return true;
+            }
             default:
                 return false;
+        }
+    }
+
+    /**
+     * Check for inserted external media.
+     */
+    private void getExternalMedia() {
+        File media = new File("/mnt/media/");
+        File[] files = media.listFiles(new FilenameFilter() {
+            @Override
+            public boolean accept(File dir, String filename) {
+                if (filename.contains("usb.")) {
+                    return true;
+                }
+                return false;
+            }
+        });
+        if (files != null && files.length > 0) {
+            mDVBManager.getPvrManager().setMediaPath(files[0].getPath());
         }
     }
 
@@ -363,6 +411,33 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener {
         }
     }
 
+    @Override
+    public void mediaMounted(String mediaPath) {
+        mDVBManager.getPvrManager().setMediaPath(mediaPath);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(TVActivity.this, "USB inserted",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
+    @Override
+    public void mediaUnmounted(String mediaPath) {
+        /**
+         * Stop PVR if it is active.
+         */
+        mDVBManager.getPvrManager().setMediaPath(null);
+        runOnUiThread(new Runnable() {
+            @Override
+            public void run() {
+                Toast.makeText(TVActivity.this, "USB removed",
+                        Toast.LENGTH_LONG).show();
+            }
+        });
+    }
+
     /**
      * Handler for sending action messages to update UI.
      */
@@ -404,5 +479,13 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener {
                 }
             }
         }
+    }
+
+    public ReminderListDialog getmReminderListDialog() {
+        return mReminderListDialog;
+    }
+
+    public ScheduledRecordListDialog getmRecordsDialog() {
+        return mRecordsDialog;
     }
 }

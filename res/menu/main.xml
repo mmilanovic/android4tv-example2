@@ -33,4 +33,16 @@
         android:id="@+id/menu_manual_reminder"
         android:orderInCategory="100"
         android:title="@string/manual_reminder"/>
+    <item
+        android:id="@+id/menu_scheduled_records"
+        android:orderInCategory="100"
+        android:title="@string/open_pvr"/>
+    <item
+        android:id="@+id/menu_reminders"
+        android:orderInCategory="100"
+        android:title="@string/open_reminders"/>
+    <item
+        android:id="@+id/menu_version"
+        android:orderInCategory="100"
+        android:title="@string/sw_version"/>
 </menu>

@@ -25,10 +25,8 @@ import com.iwedia.dtv.epg.EpgEventGenre;
 import com.iwedia.dtv.epg.EpgGenreFilter;
 import com.iwedia.dtv.epg.EpgServiceFilter;
 import com.iwedia.dtv.epg.EpgTimeFilter;
-import com.iwedia.dtv.pvr.IPvrCallback;
 import com.iwedia.dtv.pvr.SmartCreateParams;
 import com.iwedia.dtv.pvr.TimerCreateParams;
-import com.iwedia.dtv.reminder.IReminderCallback;
 import com.iwedia.dtv.reminder.ReminderSmartParam;
 import com.iwedia.dtv.reminder.ReminderTimerParam;
 import com.iwedia.dtv.route.broadcast.IBroadcastRouteControl;
@@ -42,6 +40,7 @@ import com.iwedia.dtv.route.common.RouteInputOutputDescriptor;
 import com.iwedia.dtv.service.IServiceControl;
 import com.iwedia.dtv.service.ServiceDescriptor;
 import com.iwedia.dtv.service.SourceType;
+import com.iwedia.dtv.swupdate.SWVersionType;
 import com.iwedia.dtv.types.InternalException;
 import com.iwedia.dtv.types.TimeDate;
 
@@ -69,6 +68,7 @@ public class DVBManager {
     private int mLiveRouteTer = -1;
     private int mLiveRouteCab = -1;
     private int mLiveRouteIp = -1;
+    private int mPlaybackRouteIDMain = -1;
     private int mRecordRouteTer = -1;
     private int mRecordRouteCab = -1;
     private int mRecordRouteSat = -1;
@@ -97,8 +97,9 @@ public class DVBManager {
     private int mEPGDay = 0;
     /** Active EPG genre */
     private EpgEventGenre mGenre = EpgEventGenre.GENRE_ALL;
-    private IPvrCallback mPvrCallback = null;
-    private IReminderCallback mReminderCallback = null;
+    private PvrManager mPvrManager = null;
+    /** Reminder manager */
+    private ReminderManager mReminderManager = null;
 
     /**
      * CallBack for currently DVB status.
@@ -134,6 +135,8 @@ public class DVBManager {
      */
     public void InitializeDTVService() throws InternalException {
         initializeRouteId();
+        mReminderManager = ReminderManager.getInstance(mDTVManager);
+        mPvrManager = PvrManager.getInstance(mDTVManager);
         mEPGFilterID = mDTVManager.getEpgControl().createEventList();
         mEPGCallBack = new EPGCallBack(this);
         mDTVManager.getEpgControl()
@@ -266,6 +269,12 @@ public class DVBManager {
                 }
             }
         }
+        /**
+         * RETRIEVE PLAYBACK ROUTE
+         */
+        mPlaybackRouteIDMain = broadcastRouteControl.getPlaybackRoute(
+                massStorageDescriptor.getMassStorageId(),
+                demuxDescriptor.getDemuxId(), decoderDescriptor.getDecoderId());
         if (mLiveRouteIp != -1
                 && (mLiveRouteCab != -1 || mLiveRouteSat != -1 || mLiveRouteTer != -1)) {
             ipAndSomeOtherTunerType = true;
@@ -298,38 +307,15 @@ public class DVBManager {
      * @throws InternalException
      */
     public void stopDTV() throws InternalException {
+        mPvrManager.unregisterPvrCallback();
+        mReminderManager.unregisterCallback();
         mDTVManager.getEpgControl().releaseEventList(mEPGFilterID);
         mDTVManager.getEpgControl().unregisterCallback(mEPGCallBack,
                 mEPGFilterID);
-        try {
-            mDTVManager.getPvrControl().unregisterCallback(mPvrCallback);
-        } catch (IllegalArgumentException e) {
-        }
-        try {
-            mDTVManager.getReminderControl().unregisterCallback(
-                    mReminderCallback);
-        } catch (IllegalArgumentException e) {
-        }
         PvrCallback.destroyInstance();
         ReminderCallback.destroyInstance();
         mDTVManager.getServiceControl().stopService(mCurrentLiveRoute);
         sInstance = null;
-    }
-
-    /**
-     * Registers PVR callback.
-     */
-    public void registerPvrCallback(IPvrCallback callback) {
-        mPvrCallback = callback;
-        mDTVManager.getPvrControl().registerCallback(callback);
-    }
-
-    /**
-     * Registers reminder callback.
-     */
-    public void registerReminderCallback(IReminderCallback callback) {
-        mReminderCallback = callback;
-        mDTVManager.getReminderControl().registerCallback(callback);
     }
 
     /**
@@ -763,6 +749,10 @@ public class DVBManager {
         }).start();
     }
 
+    public String getSwVersion(SWVersionType type) {
+        return mDTVManager.getSoftwareUpdateControl().getSWVersion(type);
+    }
+
     /**
      * Returns time from stream.
      */
@@ -867,5 +857,17 @@ public class DVBManager {
 
     public boolean isIpAndSomeOtherTunerType() {
         return ipAndSomeOtherTunerType;
+    }
+
+    public int getPlaybackRouteIDMain() {
+        return mPlaybackRouteIDMain;
+    }
+
+    public PvrManager getPvrManager() {
+        return mPvrManager;
+    }
+
+    public ReminderManager getReminderManager() {
+        return mReminderManager;
     }
 }
