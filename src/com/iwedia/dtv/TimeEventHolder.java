@@ -13,6 +13,8 @@ package com.iwedia.dtv;
 import com.iwedia.activities.EPGActivity;
 import com.iwedia.dtv.epg.EpgEvent;
 
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 import java.util.Date;
 
 /**
@@ -47,7 +49,8 @@ public class TimeEventHolder {
         long lEndTime = mEvent.getEndTime().getCalendar().getTimeInMillis();
         long lDuration = lEndTime - lBeginTime;
         Date lDateDuration = new Date(lDuration);
-        mDuration = lDateDuration.getHours() + ":" + lDateDuration.getMinutes();
+        mDuration = lDateDuration.getHours() + ":"
+                + String.format("%02d", lDateDuration.getMinutes());
     }
 
     public String getEventName() {
@@ -70,11 +73,12 @@ public class TimeEventHolder {
     public String toString() {
         return "EventName: " + getEventName() + "\n\n StartTime: "
                 + mEvent.getStartTime().getHour() + ":"
-                + mEvent.getStartTime().getMin() + "\n\n EndTime: "
-                + mEvent.getEndTime().getHour() + ":"
-                + mEvent.getEndTime().getMin() + "\n\n Duration: " + mDuration
-                + "\n" + "\n Extended Description: " + mEvent.getDescription()
-                + "\n" + "\n Parental Rating: "
+                + String.format("%02d", mEvent.getStartTime().getMin())
+                + "\n\n EndTime: " + mEvent.getEndTime().getHour() + ":"
+                + String.format("%02d", mEvent.getEndTime().getMin())
+                + "\n\n Duration: " + mDuration + "\n"
+                + "\n Extended Description: " + mEvent.getDescription() + "\n"
+                + "\n Parental Rating: "
                 + EPGActivity.getParentalRating(mEvent.getParentalRate())
                 + "\n" + "\n Genre: "
                 + EPGActivity.getEPGGenre(mEvent.getGenre()) + "\n";
