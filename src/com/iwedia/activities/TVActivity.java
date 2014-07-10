@@ -74,6 +74,7 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener,
     private PopupMenu mPopup;
     private ScheduledRecordListDialog mRecordsDialog;
     private ReminderListDialog mReminderListDialog;
+    private ChannelListDialog mChannelListDialog;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -268,7 +269,7 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener,
      * 
      * @param channelInfo
      */
-    private void showChannelInfo(ChannelInfo channelInfo) {
+    public void showChannelInfo(ChannelInfo channelInfo) {
         if (channelInfo != null) {
             mChannelInfo = channelInfo;
             mChannelNumber.setText(String.valueOf(channelInfo.getNumber()));
@@ -301,6 +302,18 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener,
                 NUMERIC_CHANNEL_CHANGE_DURATION);
     }
 
+    /** Initialize Channel List Dialog. */
+    private ChannelListDialog getChannelListDialog() {
+        if (mChannelListDialog == null) {
+            Display display = getWindowManager().getDefaultDisplay();
+            Point size = new Point();
+            display.getSize(size);
+            mChannelListDialog = new ChannelListDialog(this, mDVBManager,
+                    size.x, size.y);
+        }
+        return mChannelListDialog;
+    }
+
     @Override
     public boolean onKeyUp(int keyCode, KeyEvent event) {
         if (keyCode == KeyEvent.KEYCODE_MENU) {
@@ -317,7 +330,13 @@ public class TVActivity extends DTVActivity implements OnMenuItemClickListener,
     public boolean onKeyDown(int keyCode, KeyEvent event) {
         Log.d(TAG, "KEY PRESSED " + keyCode);
         switch (keyCode) {
-        /** Open EGP. */
+        /** Open Channel List. */
+            case KeyEvent.KEYCODE_DPAD_CENTER:
+            case KeyEvent.KEYCODE_ENTER: {
+                getChannelListDialog().show();
+                return true;
+            }
+            /** Open EGP. */
             case KeyEvent.KEYCODE_SEARCH: {
                 startActivity(new Intent(getApplicationContext(),
                         EPGActivity.class));
