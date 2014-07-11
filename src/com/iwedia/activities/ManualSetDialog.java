@@ -56,8 +56,7 @@ public abstract class ManualSetDialog extends Dialog implements
                         StringBuilder builder = new StringBuilder();
                         mTimeFromStream.setText(builder
                                 .append(timeFromStream.getHour()).append(":")
-                                .append(timeFromStream.getMin()).append(":")
-                                .append(timeFromStream.getSec()).toString());
+                                .append(timeFromStream.getMin()).toString());
                     } catch (InternalException e) {
                         e.printStackTrace();
                     }
