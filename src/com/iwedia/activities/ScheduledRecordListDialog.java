@@ -25,6 +25,7 @@ import com.iwedia.dtv.types.InternalException;
 
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.TimeZone;
 
 /**
  * Dialog that contains list of PVR records.
@@ -132,6 +133,7 @@ public class ScheduledRecordListDialog extends ListDialog {
                             : smartInfo.getDescription());
             mStartTime.setText(sFormatDate.format(smartInfo.getStartTime()
                     .getCalendar().getTime()));
+            sFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             mDuration.setText(sFormat.format(new Date(smartInfo.getEndTime()
                     .getCalendar().getTime().getTime()
                     - smartInfo.getStartTime().getCalendar().getTime()
@@ -145,6 +147,7 @@ public class ScheduledRecordListDialog extends ListDialog {
                             : timerInfo.getDescription());
             mStartTime.setText(sFormatDate.format(timerInfo.getStartTime()
                     .getCalendar().getTime()));
+            sFormat.setTimeZone(TimeZone.getTimeZone("UTC"));
             mDuration.setText(sFormat.format(new Date(timerInfo.getEndTime()
                     .getCalendar().getTime().getTime()
                     - timerInfo.getStartTime().getCalendar().getTime()

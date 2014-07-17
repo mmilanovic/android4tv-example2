@@ -41,9 +41,12 @@
     <string name="create_record_failed">Create record failed</string>
     <string name="create_reminder">Create reminder</string>
     <string name="create_reminder_failed">Create reminder failed</string>
+    <string name="smart_record_notification">Recording will start soon.</string>
     <string name="smart_record_created">Smart record created!</string>
     <string name="record_created">Record created!</string>
     <string name="smart_record_failed">Failed to create smart record!</string>
+    <string name="record_started">Recording started!</string>
+    <string name="record_stopped">Recording stopped!</string>
     <string name="reminder_created">Reminder created!</string>
     <string name="reminder_deleted">Reminder deleted!</string>
     <string name="manual_pvr">Manual record</string>

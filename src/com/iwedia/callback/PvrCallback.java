@@ -39,19 +39,31 @@ import com.iwedia.epg.R;
 
 public class PvrCallback implements IPvrCallback {
     private static final int MESSAGE_SHOW_TOAST_SUCCESS = 0,
-            MESSAGE_SHOW_TOAST_CONFLICT = 1;
+            MESSAGE_SHOW_TOAST_CONFLICT = 1,
+            MESSAGE_SHOW_TOAST_RECORD_STARTED = 2,
+            MESSAGE_SHOW_TOAST_RECORD_STOPPED = 3;
     private Context mContext = null;
     private Handler uiHandler = new Handler() {
         @Override
         public void handleMessage(Message msg) {
             switch (msg.what) {
                 case MESSAGE_SHOW_TOAST_SUCCESS: {
-                    Toast.makeText(mContext, R.string.smart_record_created,
+                    Toast.makeText(mContext, R.string.smart_record_notification,
                             Toast.LENGTH_SHORT).show();
                     break;
                 }
                 case MESSAGE_SHOW_TOAST_CONFLICT: {
                     Toast.makeText(mContext, R.string.smart_record_failed,
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                case MESSAGE_SHOW_TOAST_RECORD_STARTED: {
+                    Toast.makeText(mContext, R.string.record_started,
+                            Toast.LENGTH_SHORT).show();
+                    break;
+                }
+                case MESSAGE_SHOW_TOAST_RECORD_STOPPED: {
+                    Toast.makeText(mContext, R.string.record_stopped,
                             Toast.LENGTH_SHORT).show();
                     break;
                 }
@@ -133,10 +145,14 @@ public class PvrCallback implements IPvrCallback {
 
     @Override
     public void eventRecordStart(PvrEventRecordStart arg0) {
+        uiHandler.sendEmptyMessage(MESSAGE_SHOW_TOAST_RECORD_STARTED);
+
     }
 
     @Override
     public void eventRecordStop(PvrEventRecordStop arg0) {
+        uiHandler.sendEmptyMessage(MESSAGE_SHOW_TOAST_RECORD_STOPPED);
+
     }
 
     @Override
