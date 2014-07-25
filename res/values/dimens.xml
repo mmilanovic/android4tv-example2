@@ -17,7 +17,7 @@
 <resources>
     <!-- Default screen margins, per the Android Design guidelines. -->
     <dimen name="epg_item_height">32dp</dimen>
-    <dimen name="epg_linear_layout_wight">150dp</dimen>
+    <dimen name="epg_linear_layout_wight">170dp</dimen>
     <dimen name="epg_over_scale_padding">20dp</dimen>
     <dimen name="epg_time_line_text_size">24sp</dimen>
     <dimen name="padding_channel_change">3dp</dimen>
@@ -28,5 +28,5 @@
     <dimen name="height_channel_change">100dp</dimen>
     <dimen name="text_size_channel_change_number">50sp</dimen>
     <dimen name="text_size_channel_change_name">20sp</dimen>
-    <dimen name="text_size_date">18sp</dimen>
+    <dimen name="text_size_date">12sp</dimen>
 </resources>

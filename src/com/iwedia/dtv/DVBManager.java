@@ -723,16 +723,10 @@ public class DVBManager {
         }
         loadInProgress = false;
         if (mLoadFinishedListener != null) {
-            mLoadFinishedListener.onLoadFinished(lCalendar
-                    .get(Calendar.DAY_OF_MONTH)
-                    + "/"
-                    + (lCalendar.get(Calendar.MONTH) + 1)
-                    + "/"
-                    + lCalendar.get(Calendar.YEAR)
-                    + " "
-                    + lCalendar.get(Calendar.HOUR_OF_DAY)
-                    + ":"
-                    + lCalendar.get(Calendar.MINUTE));
+            mLoadFinishedListener.onLoadFinished("Display date: "
+                    + lCalendar.get(Calendar.DAY_OF_MONTH) + "/"
+                    + (lCalendar.get(Calendar.MONTH) + 1) + "/"
+                    + lCalendar.get(Calendar.YEAR));
         }
     }
 
