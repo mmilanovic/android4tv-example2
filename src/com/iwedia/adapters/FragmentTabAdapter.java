@@ -49,7 +49,7 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
     /** Alert Dialog for Previous/Next Day EPG. */
     private AlertDialog mEPGDayAlertDialog = null;
     /** TextView for Date. */
-    private TextView mTextViewDate = null;
+    private TextView mTextViewDate = null, mTextViewDateCurrent = null;
     private Thread mTimerThread;
 
     public FragmentTabAdapter(EPGActivity activity) {
@@ -60,6 +60,8 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
         mViewPager.setOnPageChangeListener(this);
         mViewPager.setPageMargin(-5);
         mTextViewDate = (TextView) activity.findViewById(R.id.textview_date);
+        mTextViewDateCurrent = (TextView) activity
+                .findViewById(R.id.textview_date_curr);
         mHandler = new Handler() {
             public void handleMessage(android.os.Message msg) {
                 if (msg.what == MESSAGE_REFRESH_TIME) {
@@ -71,12 +73,19 @@ public class FragmentTabAdapter extends FragmentPagerAdapter implements
                         TimeDate timeFromStream = DVBManager.getInstance()
                                 .getCurrentTime();
                         StringBuilder builder = new StringBuilder();
-                        mTextViewDate.setText(builder
-                                .append(timeFromStream.getDay()).append("/")
-                                .append(timeFromStream.getMonth()).append("/")
-                                .append(timeFromStream.getYear()).append(" ")
-                                .append(timeFromStream.getHour()).append(":")
-                                .append(timeFromStream.getMin()).toString());
+                        mTextViewDateCurrent.setText(builder
+                                .append("Current time: ")
+                                .append(timeFromStream.getDay())
+                                .append("/")
+                                .append(timeFromStream.getMonth())
+                                .append("/")
+                                .append(timeFromStream.getYear())
+                                .append(" ")
+                                .append(String.format("%02d",
+                                        timeFromStream.getHour()))
+                                .append(":")
+                                .append(String.format("%02d",
+                                        timeFromStream.getMin())).toString());
                     } catch (Exception e) {
                     }
                 } else {
