@@ -153,7 +153,7 @@ public class TimeLineObject extends View {
                             DVBManager.getInstance().createSmartRecord(
                                     new SmartCreateParams(holder.getEvent()
                                             .getServiceIndex(), holder
-                                            .getEvent().getEventId(), holder
+                                            .getEvent().getEventID(), holder
                                             .getEvent().getName(), holder
                                             .getEvent().getDescription(),
                                             holder.getEvent().getStartTime(),
@@ -182,7 +182,7 @@ public class TimeLineObject extends View {
                             Log.d(TAG, "EVENT SERVICE INDEX: "
                                     + holder.getEvent().getServiceIndex());
                             Log.d(TAG, "EVENT ID: "
-                                    + holder.getEvent().getEventId());
+                                    + holder.getEvent().getEventID());
                             Log.d(TAG, "EVENT START TIME: "
                                     + holder.getEvent().getStartTime()
                                             .toString());
@@ -190,8 +190,8 @@ public class TimeLineObject extends View {
                                     new ReminderSmartParam(holder.getEvent()
                                             .getName(), holder.getEvent()
                                             .getDescription(), holder
-                                            .getEvent().getServiceIndex(), 0,
-                                            holder.getEvent().getEventId(),
+                                            .getEvent().getServiceIndex(),
+                                            holder.getEvent().getEventID(),
                                             holder.getEvent().getStartTime()));
                             Toast.makeText(mContext, R.string.reminder_created,
                                     Toast.LENGTH_SHORT).show();
